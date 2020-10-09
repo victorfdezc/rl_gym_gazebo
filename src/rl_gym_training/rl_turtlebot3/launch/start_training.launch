@@ -1,0 +1,6 @@
+<launch>
+    <!-- This version uses the openai_ros environments -->
+    <rosparam command="load" file="$(find rl_turtlebot3)/config/my_turtlebot3_openai_qlearn_params.yaml" />
+    <!-- Launch the training system -->
+    <node pkg="rl_turtlebot3" name="turtlebot3_world" type="start_qlearning.py" output="screen"/>
+</launch>
