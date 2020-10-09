@@ -6,7 +6,7 @@ turtlebot3:
     epsilon: 1.0
     epsilon_discount: 0.999
     nepisodes: 100000
-    nsteps: 100000 # creo que no se usa esto porque lo tiene implicito en el registro del entorno
+    nsteps: 1000 # creo que no se usa esto porque lo tiene implicito en el registro del entorno
 
     # Actions parameters:
     n_actions: 3 # We have 3 actions, Forwards,TurnLeft,TurnRight
