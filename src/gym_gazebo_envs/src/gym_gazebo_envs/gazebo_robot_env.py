@@ -18,22 +18,23 @@ It's important to know how this class works in order to make a functional enviro
 If we check the OpenAI Gym Env class, we will see that the main methods we must need to know are:
 step, reset, render, close and seed. Also, we must know about the action_space, observation_space and
 reward_range attributes.
-So, because RobotGazeboEnv class inherits from gym.Env class, we must define all those methods and 
+So, because GazeboRobotEnv class inherits from gym.Env class, we must define all those methods and 
 attributes to make a Gazebo environment.
 Of course, this class will define a generalized environment for robots in Gazebo, so some of those methods
 or attributes must be defined in another subclasses because they depend on the robot we use or even the task
-to solve. This is why we need a set of classes with a hierarchical order: the main class is RobotGazeboEnv, the
+to solve. This is why we need a set of classes with a hierarchical order: the main class is GazeboRobotEnv, the
 next one is th class that specify the robot, and the last class is the one that specify the task to solve.
 '''
-class RobotGazeboEnv(gym.Env):
+class GazeboRobotEnv(gym.Env):
 
-    def __init__(self, start_init_physics_parameters=True, reset_world_or_sim="SIMULATION"):
+    def __init__(self, start_init_physics_parameters=True, reset_world_or_sim="SIMULATION", gazebo_version="ros"):
 
         # Initialize Gazebo connection to control the Gazebo simulation
         # TODO: de este bloque de codigo revisar que necesito y que implica realmente inicializar la conexion con Gazebo.
         # Creo que el objeto del controlador no es necesario
-        rospy.logdebug("START init RobotGazeboEnv")
+        rospy.logdebug("START init GazeboRobotEnv")
         self.gazebo = GazeboConnection(start_init_physics_parameters,reset_world_or_sim)
+        self.gazebo_version = gazebo_version
         self.seed()
 
 
@@ -45,7 +46,7 @@ class RobotGazeboEnv(gym.Env):
         # And create a topic publisher to publish episode info:
         self.episode_pub = rospy.Publisher('/episode_info', RLEpisodeInfo, queue_size=1)        
 
-        rospy.logdebug("END init RobotGazeboEnv")
+        rospy.logdebug("END init GazeboRobotEnv")
 
     #--------------------- gym.Env main Methods ---------------------#
     def step(self, action):
@@ -58,6 +59,8 @@ class RobotGazeboEnv(gym.Env):
         episode has finished or not.
 
         This function accepts an action and returns a tuple (observation, reward, done, info)
+
+        # TODO: add params and return like OpenAI
 
         - arguments: action
         - return: obs, reward, done, info
@@ -107,15 +110,16 @@ class RobotGazeboEnv(gym.Env):
         # TODO: aqui es donde deberia hacer lo de resetear los controladores a partir de esperar un tiempo a 
         # que el robot vuelva a un estado inicial.
 
-        rospy.logdebug("Reseting RobotGazeboEnvironment")
+        rospy.logdebug("Reseting GazeboRobotEnvironment")
         self._update_episode()
         self._init_env_variables()
         self._reset_sim()
         obs = self._get_obs()
-        rospy.logdebug("END Reseting RobotGazeboEnvironment")
+        rospy.logdebug("END Reseting GazeboRobotEnvironment")
         return obs
 
-    def render(self, mode='human', ros_version=True):
+    def render(self, mode='human'):
+        # TODO: check the example of how to implement this method!!
         # 3 modes: human, sim, close
 
         # Check if "gzclient" process is running:
@@ -127,7 +131,7 @@ class RobotGazeboEnv(gym.Env):
                 # If "gzclient" is running we only make sure that the simulation is running as fast as possible:
                 self.gazebo.setPhysicsParameters(update_rate=-1)
             else:
-                if ros_version == True:
+                if self.gazebo_version == "ros":
                     # Open "gzclient" in case it is not open
                     subprocess.Popen("rosrun gazebo_ros gzclient __name:=gzclient", shell = True) # TODO: code blocks here when calling this node
                 else:
@@ -140,7 +144,7 @@ class RobotGazeboEnv(gym.Env):
                 # If "gzclient" is running we only make sure that the simulation is running as fast as possible:
                 self.gazebo.setPhysicsParameters(update_rate=1000.0)
             else:
-                if ros_version == True:
+                if self.gazebo_version == "ros":
                     # Open "gzclient" in case it is not open
                     subprocess.Popen("rosrun gazebo_ros gzclient __name:=gzclient", shell = True)
                 else:
@@ -162,10 +166,10 @@ class RobotGazeboEnv(gym.Env):
         
         TODO: modificar este metodo para que cierre Gazebo, tanto GUI como simulacion
         '''
-        rospy.logdebug("Closing RobotGazeboEnvironment")
+        rospy.logdebug("Closing GazeboRobotEnvironment")
         
         # Shutdown the ROS node:
-        rospy.signal_shutdown("Closing RobotGazeboEnvironment")
+        rospy.signal_shutdown("Closing GazeboRobotEnvironment")
 
     def seed(self, seed=None):
         '''

@@ -15,7 +15,7 @@ from gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs import turtlebot3_obstac
 if __name__ == '__main__':
     # TODO: check env variables are fine (total_episode_steps, episode_num, total_episode_reward...)
 
-    rospy.init_node('turtlebot3_obstacle_avoidance_qlearn', anonymous=True, log_level=rospy.WARN)
+    rospy.init_node('turtlebot3_obstacle_avoidance_qlearn', anonymous=True, log_level=rospy.WARN) # TODO: log_level!!!!!
 
     # Create the Gym environment
     env = gym.make('TurtleBot3ObstacleAvoidance-v0')
@@ -52,9 +52,12 @@ if __name__ == '__main__':
     for x in range(nepisodes):
         # if (x%10) == 0 or ((x-1)%10) == 0: env.render(mode="human")
         # else: env.render(mode="close")
-        env.render(mode="sim")
+        if x > 1000:
+            env.render(mode="sim")
+        else:
+            env.render("close")
 
-        rospy.logdebug("############### START EPISODE=>" + str(x))
+        # rospy.logdebug("############### START EPISODE=>" + str(x))
 
         cumulated_reward = 0
         done = False
@@ -83,6 +86,8 @@ if __name__ == '__main__':
 
             nextState = ''.join(map(str, observation))
 
+            # TODO: avoid printing too much information and check time we spend in learning steps
+            # and env.step process. Or check only how much time is until we perform the next action.
             # Make the algorithm learn based on the results
             rospy.logdebug("# state we were=>" + str(state))
             rospy.logdebug("# action that we took=>" + str(action))
@@ -103,9 +108,9 @@ if __name__ == '__main__':
             # rospy.sleep(2.0)
         m, s = divmod(int(time.time() - start_time), 60)
         h, m = divmod(m, 60)
-        rospy.logerr(("EP: " + str(x + 1) + " - [alpha: " + str(round(qlearn.alpha, 2)) + " - gamma: " + str(
+        rospy.logwarn(("EP: " + str(x + 1) + " - [alpha: " + str(round(qlearn.alpha, 2)) + " - gamma: " + str(
             round(qlearn.gamma, 2)) + " - epsilon: " + str(round(qlearn.epsilon, 2)) + "] - Reward: " + str(
-            cumulated_reward) + "     Time: %d:%02d:%02d" % (h, m, s)))
+            cumulated_reward) + " - Steps: " + str(i) + " - Time: %d:%02d:%02d" % (h, m, s)))
 
     rospy.loginfo(("\n|" + str(nepisodes) + "|" + str(qlearn.alpha) + "|" + str(qlearn.gamma) + "|" + str(
         initial_epsilon) + "*" + str(epsilon_discount) + "|" + str(highest_reward) + "| PICTURE |"))

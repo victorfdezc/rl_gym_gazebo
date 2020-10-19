@@ -3,7 +3,7 @@
 import numpy
 import rospy
 import time
-from gym_gazebo_envs import robot_gazebo_env
+from gym_gazebo_envs import gazebo_robot_env
 from sensor_msgs.msg import LaserScan
 from sensor_msgs.msg import Imu
 from nav_msgs.msg import Odometry
@@ -12,7 +12,7 @@ from geometry_msgs.msg import Twist
 
 '''
 This class is used for all Turtlebot3 robots (and even Turtlebot2 because they use the same topics
-and services). As you can see, this class inherits from the parent class RobotGazeboEnv which specify
+and services). As you can see, this class inherits from the parent class GazeboRobotEnv which specify
 a generalized class for all robots simulated in Gazebo.
 
 In this class we will define some of the main methods needed to take observations and actions.
@@ -43,7 +43,7 @@ every sensor work as expected.
 In conclusion, with Turtlebot3 we must reset the WORLD to avoid breaking the IMU and we can change the model
 pose using /gazebo/set_model_state service.
 '''
-class TurtleBot3Env(robot_gazebo_env.RobotGazeboEnv):
+class TurtleBot3Env(robot_gazebo_env.GazeboRobotEnv):
 
     def __init__(self):
         '''
@@ -51,7 +51,7 @@ class TurtleBot3Env(robot_gazebo_env.RobotGazeboEnv):
         '''
         rospy.logdebug("Start TurtleBot3Env INIT...")
 
-        # We launch the init function of the parent class robot_gazebo_env.RobotGazeboEnv
+        # We launch the init function of the parent class robot_gazebo_env.GazeboRobotEnv
         # Remember to reset the WORLD and not the whole simulation:
         super(TurtleBot3Env, self).__init__(reset_world_or_sim="WORLD")
 
@@ -72,9 +72,9 @@ class TurtleBot3Env(robot_gazebo_env.RobotGazeboEnv):
         rospy.logdebug("Finished TurtleBot3Env INIT...")
 
         
-    #--------------------- RobotGazeboEnv Methods ---------------------#
+    #--------------------- GazeboRobotEnv Methods ---------------------#
     '''
-    We must implement in the Task Environment the rest of methods defined in RobotGazeboEnv
+    We must implement in the Task Environment the rest of methods defined in GazeboRobotEnv
     because those methods depend on the task and how the robot is going to be trained.
     '''
 

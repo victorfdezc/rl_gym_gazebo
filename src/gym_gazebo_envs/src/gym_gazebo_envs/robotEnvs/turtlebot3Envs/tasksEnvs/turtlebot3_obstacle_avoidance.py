@@ -23,7 +23,7 @@ To register an environment, we have the following arguments:
 register(
         id = 'TurtleBot3ObstacleAvoidance-v0',
         entry_point = 'gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs.turtlebot3_obstacle_avoidance:TurtleBot3ObstacleAvoidanceEnv',
-        max_episode_steps = 10000, # TODO: put this parameter in yaml
+        max_episode_steps = 1000, # TODO: put this parameter in yaml
     )
 
 '''
@@ -190,14 +190,14 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
                 self.episode_done = True
                 break
 
-        if self.episode_done:
-            rospy.logerr("TurtleBot3 is Too Close to wall==>")
-        else:
-            rospy.logwarn("TurtleBot3 is NOT close to a wall ==>")       
+        # if self.episode_done:
+        #     rospy.logerr("TurtleBot3 is Too Close to wall==>")
+        # else:
+        #     rospy.logwarn("TurtleBot3 is NOT close to a wall ==>")       
 
         return self.episode_done
 
-    def _compute_reward(self, observations, done):
+    def _compute_reward(self, observations, done): # TODO: check GoalEnv and robotics envs in gym repo
         '''
         This method is used to compute the reward to give to the agent. It can be based on
         the observations or on the fact that the episode has finished or not (both of them given
