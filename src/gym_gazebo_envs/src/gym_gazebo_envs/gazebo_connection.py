@@ -12,18 +12,17 @@ from gazebo_msgs.srv import SetModelState
 from gazebo_msgs.msg import ModelState
 
 '''
-This class will allow us to control the Gazebo simulations.
+This class will allow us to control the Gazebo simulations by using ROS services.
 '''
 class GazeboConnection():
 
     def __init__(self, reset_world_or_sim, max_retry = 20):
 
-        # Store class attributes:
+        # Store class attributes values:
         self.reset_world_or_sim = reset_world_or_sim
-
-        # Initialization of some class attributes:
         self._max_retry = max_retry # maximum times we try to call a Gazebo service
-        # Gazebo services definition:
+
+        # Gazebo services definition to control simulations:
         self.unpause = rospy.ServiceProxy('/gazebo/unpause_physics', Empty) # service to unpause the simulation
         self.pause = rospy.ServiceProxy('/gazebo/pause_physics', Empty) # service to pause the simulation
         self.reset_simulation = rospy.ServiceProxy('/gazebo/reset_simulation', Empty) # service to reset the entire simulation including time
@@ -46,7 +45,11 @@ class GazeboConnection():
 
     def pauseSim(self):
         '''
-        This method is used to pause the simulation using the Gazebo services previously defined
+        This method is used to pause the simulation using the Gazebo services previously defined.
+
+        NOTE: if you are using ROS based robots, meanwhile the simulation is paused, robot topics are
+        frozen. This means that you cannot receive sensor information and you cannot send control references
+        to the actuators if the simulation is paused.
         '''
 
         rospy.logdebug("PAUSING START")
@@ -78,7 +81,7 @@ class GazeboConnection():
 
     def unpauseSim(self):
         '''
-        This method is used to unpause the simulation using the Gazebo services previously defined
+        This method is used to unpause the simulation using the Gazebo services previously defined.
         '''
 
         rospy.logdebug("UNPAUSING START")
@@ -109,12 +112,13 @@ class GazeboConnection():
         rospy.logdebug("UNPAUSING FINISH")
 
 
-    def resetSim(self): #TODO: cuando el simulador se resetea se pausa tambien?
+    def resetSim(self):
         '''
-        This method is needed to select how we are going to reset the simulation.
-        This is needed because in some simulations, when reseted the simulation, systems that
-        work with TF break, so instead of resetting the entire simulation using /gazebo/reset_simulation
-        service, we reset only the objects pose using the /gazebo/reset_world service.
+        This method is used to reset the simulation depending on the parameter reset_world_or_sim, so the way
+        in which we reset the simulation is different.
+        This is needed because in some simulations, when reseted the simulation, some Gazebo plugins break,
+        so instead of resetting the entire simulation using /gazebo/reset_simulation service, we reset only 
+        the objects pose using the /gazebo/reset_world service.
         '''
         if self.reset_world_or_sim == "SIMULATION":
             rospy.logdebug("SIMULATION RESET")
@@ -129,7 +133,9 @@ class GazeboConnection():
 
     def resetSimulation(self):
         '''
-        Resets the whole Gazebo simulation, including time
+        Resets the whole Gazebo simulation, including time.
+
+        NOTE: this way of resetting the simulation can break some Gazebo plugins, like sensors.
         '''
 
         rospy.logdebug("RESET START")
@@ -188,12 +194,12 @@ class GazeboConnection():
         rospy.logdebug("RESET FINISH")
 
     def init_physics_parameters(self):
-        """
+        '''
         We initialise the physics parameters of the simulation, like gravity,
         friction coeficients and so on.
 
         NOTE: this parameters are the same that turtlebot3 Gazebo simulations use
-        """
+        '''
         self._time_step = Float64(0.001)
 
         self._gravity = Vector3()
@@ -213,8 +219,14 @@ class GazeboConnection():
         self._ode_config.erp = 0.2
         self._ode_config.max_contacts = 20
 
-    def setPhysicsParameters(self, update_rate = 1000.0): # TODO:change name
-        # TODO: put the same code than the previous methods that call a service(with max retry and wait_service)
+    def setPhysicsParameters(self, update_rate = 1000.0):
+        '''
+        This method is used to set the physics parameters of Gazebo simulations. Mainly, this method is used 
+        only to change in a fast way the simulation speed, so we can simulate faster than real time.
+
+        If update_rate = 1000.0 we are running at real time, but if update_rate = -1 we are running the simulation
+        as fast as possible.
+        '''
 
         set_physics_msg = SetPhysicsPropertiesRequest()
         set_physics_msg.time_step = self._time_step.data
@@ -249,7 +261,7 @@ class GazeboConnection():
 
     def setModelState(self, model, x, y, z, tx, ty, tz, tw, frame="world"):
         '''
-        This method is used to set specified pose to any model in the simulation
+        This method is used to set specified pose to any model in the simulation.
         '''
         state_msg = ModelState()
         state_msg.model_name = model
@@ -293,7 +305,7 @@ class GazeboConnection():
         speed and the real time speed. This ratio will help us to make time.sleep specifying the real time we
         want to wait, so, automatically this wait time will adjust to the simulation time.
 
-        TODO: Remember that Gazebo Simulation must use the use_sim_time=True parameter, so ROS clock is updated
+        NOTE: Remember that Gazebo Simulation must use the use_sim_time=True parameter, so ROS clock is updated
         with the simulation time and not real time.
         '''
         # Topic to publish RTF:
