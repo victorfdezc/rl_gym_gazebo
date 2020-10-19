@@ -43,7 +43,7 @@ every sensor work as expected.
 In conclusion, with Turtlebot3 we must reset the WORLD to avoid breaking the IMU and we can change the model
 pose using /gazebo/set_model_state service.
 '''
-class TurtleBot3Env(robot_gazebo_env.GazeboRobotEnv):
+class TurtleBot3Env(gazebo_robot_env.GazeboRobotEnv):
 
     def __init__(self):
         '''
