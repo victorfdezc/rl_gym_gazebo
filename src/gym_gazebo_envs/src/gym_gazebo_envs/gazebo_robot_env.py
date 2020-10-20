@@ -11,40 +11,42 @@ import time
 
 
 '''
-This is going to be the main class of this package. This class inherits from the main class of
+This is going to be the main class of this framework. This class inherits from the main class of
 OpenAI Gym, that is, the class Env. You can check this class in OpenAI gym Github:
     https://github.com/openai/gym/blob/master/gym/core.py
 It's important to know how this class works in order to make a functional environment using Gazebo.
 If we check the OpenAI Gym Env class, we will see that the main methods we must need to know are:
 step, reset, render, close and seed. Also, we must know about the action_space, observation_space and
 reward_range attributes.
-So, because GazeboRobotEnv class inherits from gym.Env class, we must define all those methods and 
-attributes to make a Gazebo environment.
+So, because GazeboRobotEnv class inherits from gym.Env class, we must implement all those methods to 
+make a Gazebo environment.
 Of course, this class will define a generalized environment for robots in Gazebo, so some of those methods
-or attributes must be defined in another subclasses because they depend on the robot we use or even the task
-to solve. This is why we need a set of classes with a hierarchical order: the main class is GazeboRobotEnv, the
-next one is th class that specify the robot, and the last class is the one that specify the task to solve.
+depend on other auxiliar methods that have been implemented in the next subclasses because they depend on 
+the robot we use or even the task to solve. This is why we need a set of classes with a hierarchical order: 
+the main class is GazeboRobotEnv, the next one is the class that specify the robot, and the last class is the 
+one that specify the task to solve.
+The Env attributes will also be defined in the next subclasses because they depend on the task to solve.
 '''
 class GazeboRobotEnv(gym.Env):
 
-    def __init__(self, start_init_physics_parameters=True, reset_world_or_sim="SIMULATION", gazebo_version="ros"):
+    def __init__(self, reset_world_or_sim="SIMULATION", gazebo_version="ros"):
 
         # Initialize Gazebo connection to control the Gazebo simulation
-        # TODO: de este bloque de codigo revisar que necesito y que implica realmente inicializar la conexion con Gazebo.
-        # Creo que el objeto del controlador no es necesario
         rospy.logdebug("START init GazeboRobotEnv")
-        self.gazebo = GazeboConnection(start_init_physics_parameters,reset_world_or_sim)
+        self.gazebo = GazeboConnection(reset_world_or_sim)
+        
         self.gazebo_version = gazebo_version
         self.seed()
 
-
-        # Initialize episode variables:
+        # Initialize episode variables: #TODO: check that these variables work fine!
         self.episode_num = 0
         self.total_episode_reward = 0.0
         self.total_episode_steps = 0
         self.episode_done = False
         # And create a topic publisher to publish episode info:
-        self.episode_pub = rospy.Publisher('/episode_info', RLEpisodeInfo, queue_size=1)        
+        self.episode_pub = rospy.Publisher('/episode_info', RLEpisodeInfo, queue_size=1)
+
+        self.metadata = {'render.modes': ['human', 'sim', 'close']}
 
         rospy.logdebug("END init GazeboRobotEnv")
 
@@ -54,32 +56,23 @@ class GazeboRobotEnv(gym.Env):
         This function is used to run one timestep of the environment's dynamics. To
         do that, we get an action, a_t to execute in the environment, so we will end up
         in the state s_(t+1) with a reward r_(t+1). This means that after executing a_t
-        we will receive the observation corresponding to the state s_(t+1) and the reward
-        of arriving to that state. Besides, we will receive a done flag that means if the
+        we will read the observation corresponding to the state s_(t+1) and we will compute
+        the reward of arriving to that state. We will also compute a done flag that means if the
         episode has finished or not.
 
-        This function accepts an action and returns a tuple (observation, reward, done, info)
-
-        # TODO: add params and return like OpenAI
-
-        - arguments: action
-        - return: obs, reward, done, info
+        Args:
+            action (object): an action provided by the agent
+        Returns:
+            observation (object): agent's observation of the current environment
+            reward (float) : amount of reward returned after previous action
+            done (bool): whether the episode has ended, in which case further step() calls will return undefined results
+            info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)
         '''
-
-        """
-        Here we should convert the action num to movement action, execute the action in the
-        simulation and get the observations result of performing that action.
-        """
         rospy.logdebug("START STEP OpenAIROS")
 
-        # Start the Gazebo simulation:
-        self.gazebo.unpauseSim()
-        # Execute the given action in the simulation (that is, run one timestep):
-        self._execute_action(action)
+        # Run a step in the simulation given the action:
+        self._sim_step(action)
 
-        # Pause the simulation again meanwhile we process all the information result of
-        # performing the previous action:
-        self.gazebo.pauseSim()
         # Get the observation (from robot sensors, for example) of the new state we arrived
         # because of performing the previous action:
         obs = self._get_obs()
@@ -104,6 +97,9 @@ class GazeboRobotEnv(gym.Env):
     def reset(self):
         '''
         This method resets the environment to an initial state and returns an initial observation.
+
+        Returns:
+            observation (object): the initial observation.
         '''
 
         # TODO: check this method, I think it can be simplified so we don't need to call so many functions.
@@ -111,17 +107,22 @@ class GazeboRobotEnv(gym.Env):
         # que el robot vuelva a un estado inicial.
 
         rospy.logdebug("Reseting GazeboRobotEnvironment")
-        self._update_episode()
-        self._init_env_variables()
+        self._publish_episode_info_topic()
+        self._update_env_variables()
         self._reset_sim()
         obs = self._get_obs()
         rospy.logdebug("END Reseting GazeboRobotEnvironment")
         return obs
 
     def render(self, mode='human'):
-        # TODO: check the example of how to implement this method!!
-        # 3 modes: human, sim, close
-
+        '''
+        Method to render the simulation using the Gazebo client GUI. We have 3 possible modes:
+            - human: render the simulation at real time speed.
+            - sim: render the simulation as fast as possible.
+            - close: no render, the simulation will run as fast as possible.
+        Args:
+            mode (str): the mode to render with
+        '''
         # Check if "gzclient" process is running:
         tmp = os.popen("ps -Af").read()
         proccount = tmp.count('gzclient')
@@ -160,20 +161,23 @@ class GazeboRobotEnv(gym.Env):
 
     def close(self):
         '''
-        This method is used to close the environment.
-        
-        Use it for closing GUIS and other systems that need closing.
-        
-        TODO: modificar este metodo para que cierre Gazebo, tanto GUI como simulacion
-        '''
-        rospy.logdebug("Closing GazeboRobotEnvironment")
-        
+        This method is used to close the environment.        
+        It also closes the whole simulation, including gzclient and gzserver.
+        '''        
         # Shutdown the ROS node:
         rospy.signal_shutdown("Closing GazeboRobotEnvironment")
+        os.popen("killall -9 gzserver gzclient")
 
     def seed(self, seed=None):
         '''
-        TODO: mirar para que sirve este metodo y por que llama al metodo de gym...
+        Sets the seed for this env's random number generator(s).
+
+        Returns:
+            list<bigint>: Returns the list of seeds used in this env's random
+              number generators. The first value in the list should be the
+              "main" seed, or the value which a reproducer should pass to
+              'seed'. Often, the main seed equals the provided 'seed', but
+              this won't be true if seed=None, for example.
         '''
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
@@ -181,37 +185,28 @@ class GazeboRobotEnv(gym.Env):
 
 
     #--------------------- Extension Methods ------------------------#
-    def _update_episode(self):
-        """
-        Publishes the total reward of the episode and
-        increases the episode number by one.
-        :return:
+    def _sim_step(self, action):
+        '''
+        Run a simulation step to execute the given action in the environment.
+        '''
+        # Start the Gazebo simulation:
+        self.gazebo.unpauseSim()
 
-        TODO: creo que lo mejor es eliminar esta funcion de mierda y poner todo esto
-        en el metodo reset ya que lo unico que hace es publicar por el topico y reinicializar
-        las variables del episodio
-        """
-        rospy.logdebug("PUBLISHING REWARD...") # cambiado por logwarn
-        self._publish_reward_topic(
-                                    self.total_episode_reward,
-                                    self.episode_num
-                                    )
-        rospy.logdebug("PUBLISHING REWARD...DONE="+str(self.total_episode_reward)+",EP="+str(self.episode_num)) # cambiado por logwarn
+        # Execute the given action in the simulation (that is, run one timestep):
+        self._execute_action(action)
 
-    def _publish_reward_topic(self, reward, episode_number=1):
-        """
-        This function publishes the given reward in the reward topic for
-        easy access from ROS infrastructure.
-        :param reward:
-        :param episode_number:
-        :return:
+        # Pause the simulation again meanwhile we process all the information result of
+        # performing the previous action:
+        self.gazebo.pauseSim()
 
-        TODO: igual que la funcion de arriba, si eso eliminarla, o quizas esta si se pueda quedar porque
-        tiene mas lineas de codigo mas concretas, pero la funcion de _update_episode es una mierda
-        """
+    def _publish_episode_info_topic(self):
+        '''
+        Publish episode info to /episode_info topic.
+        '''
         reward_msg = RLEpisodeInfo()
-        reward_msg.episode_number = episode_number
-        reward_msg.episode_reward = reward
+        reward_msg.episode_number = self.episode_num
+        reward_msg.episode_reward = self.total_episode_reward
+        reward_msg.total_episode_steps = self.total_episode_steps
         self.episode_pub.publish(reward_msg)
 
     def _reset_sim(self):
@@ -220,93 +215,108 @@ class GazeboRobotEnv(gym.Env):
         '''
         rospy.logdebug("RESET SIM START")
 
-        # TODO: why we need to check that all the systems are fine before
-        # resetting?
+        # Start the simulation
         self.gazebo.unpauseSim()
-        self._check_all_systems_ready() #TODO: why checking systems here?
-        # TODO: why we need set an init pose if reseting the simulation also do this?
-        self._set_final_state() #TODO: recuerda que para poner un estado inicial debes despausar la simulacion y luego la vuelves a pausar (ya que poner un estado inicial sera equivalente a ejecutar una accion)
-
+        # And set a final state to the robot
+        self._set_final_state()
         # Pause the simulation
         self.gazebo.pauseSim()
+
         # Reset the Gazebo simulation
         self.gazebo.resetSim()
-        # And unpause the simulation to check that all systems (like sensors) are fine
-        # and publishing data
+
+        # And unpause the simulation to set a initial state to the robot
         self.gazebo.unpauseSim()
-        self._check_all_systems_ready()
         self._set_initial_state()
-        # Finally, pause the simulation again:
+        # Then, check that all systems (like sensors) are fine and
+        # publishing data
+        self._check_all_systems_ready()
+        # Finally, pause the simulation again
         self.gazebo.pauseSim()
 
         rospy.logdebug("RESET SIM END")
         
         return True
 
-    def _init_env_variables(self):
-        """
-        Inits variables needed to be initialised each time we reset at the start
-        of an episode.
-        :return:
-        """
+    def _update_env_variables(self):
+        '''
+        Update some variables after resetting the environment.
+        '''
         # Set to false Done, because its calculated asyncronously
         self.episode_done = False
         self.total_episode_reward = 0.0
         self.total_episode_steps = 0
         self.episode_num += 1
 
-
-    def _check_all_systems_ready(self): # TODO: decir que esto se define en la clase del robot
-        """
+    #----------------------------------------------------#
+    #-- To implement in the specific robot environment --#
+    #----------------------------------------------------#
+    def _check_all_systems_ready(self):
+        '''
         Checks that all the sensors, publishers and other simulation systems are
         operational.
-        """
+        '''
         raise NotImplementedError()
 
-
-    # TODO:Decir que las proximas clases se definen en la clase de la task
-    def _set_initial_state(self): # TODO: check description
+    #------------------------------------------#
+    #-- To implement in the task environment --#
+    #------------------------------------------#
+    def _set_initial_state(self):
         '''
-        Set the robot in a initial state to reset the simulation. For example, in case
+        Set the robot in a initial state after resetting the simulation. For example, in case
         of a mobile robot, the initial state could be a linear and angular speeds equal zero,
         or in case of a robot arm, a initial pose with speed and acceleration equal zero.
         This can also be seen as a soft way of resetting robot controllers.
+        Besides, we can use this method to set a random initial position to the robot which can be
+        really useful for mobile robots.
         '''
         raise NotImplementedError()
 
-    def _set_final_state(self): # TODO: change description
+    def _set_final_state(self):
         '''
-        Set the robot in a final state to reset the simulation. For example, in case
-        of a mobile robot, the initial state could be a linear and angular speeds equal zero,
-        or in case of a robot arm, a initial pose with speed and acceleration equal zero.
+        Set the robot in a final state before resetting the simulation. For example, in case
+        of a mobile robot, the final state could be a linear and angular speeds equal zero,
+        or in case of a robot arm, a final pose with speed and acceleration equal zero.
         This can also be seen as a soft way of resetting robot controllers.
         '''
         raise NotImplementedError()
 
     def _get_obs(self):
-        """Returns the observation.
-        """
+        '''
+        Returns the observation, for example, from the sensor readings.
+        '''
         raise NotImplementedError()
 
     def _execute_action(self, action):
-        """Applies the given action to the simulation.
-        """
+        '''
+        Execute the given action to the simulation.
+
+        Args:
+            action (object) : action to execute
+        '''
         raise NotImplementedError()
 
     def _is_done(self, observations):
-        """Indicates whether or not the episode is done ( the robot has fallen for example).
-        """
+        '''
+        Indicates whether or not the episode is done. The episode can finish in case the
+        robot has not reached its goal and it has failed (for example, if the robot has 
+        crashed) or in case it has reached the goal.
+
+        Args:
+            observations (object): current observation of the robot
+        '''
         raise NotImplementedError()
 
     def _compute_reward(self, observations, done):
         """Calculates the reward to give based on the observations given.
+
+        TODO: done? is_success? Aqui quizas deberia aniadir si ha conseguido el obejtivo o no,
+        o directamente paso y hacer un metodo aparte en el entorno de la tarea que calcule si
+        ha tenido exito o no.
+
+        Args:
+            observations (object): current observation of the robot
+            done (bool): if the episode has finished or not
         """
         raise NotImplementedError()
-
-    def _env_setup(self, initial_qpos): # TODO: method not used... use it to set the initial pose of the robots or remove it
-        """Initial configuration of the environment. Can be used to configure initial state
-        and extract information from the simulation.
-        """
-        raise NotImplementedError()
-
     #------------------------------------------------------------------#

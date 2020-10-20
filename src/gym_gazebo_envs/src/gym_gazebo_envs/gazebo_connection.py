@@ -261,7 +261,7 @@ class GazeboConnection():
 
     def setModelState(self, model, x, y, z, tx, ty, tz, tw, frame="world"):
         '''
-        This method is used to set specified pose to any model in the simulation.
+        This method is used to set a specified pose to any model in the simulation.
         '''
         state_msg = ModelState()
         state_msg.model_name = model
