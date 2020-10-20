@@ -37,6 +37,7 @@ class GazeboRobotEnv(gym.Env):
         
         self.gazebo_version = gazebo_version
         self.seed()
+        # TODO: make a _reset_sim here so the robot is in the initial state? And avoid making the sim reset in GazeboConnection
 
         # Initialize episode variables: #TODO: check that these variables work fine!
         self.episode_num = 0
