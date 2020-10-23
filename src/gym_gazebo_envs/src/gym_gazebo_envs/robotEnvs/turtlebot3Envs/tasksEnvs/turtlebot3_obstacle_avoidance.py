@@ -29,12 +29,16 @@ register(
 '''
 This class is used to define a task to solve for a Turtlebot3 robot. In particular, we must define how
 observations are taken, how to compute the reward, how to execute actions, when an episode has finished...
+that is all the GazeboRobotEnv methods that have not been implemented yet.
 Besides, we must define the attributes needed to define a Gym environment: action_space, observation_space
 and reward_range.
 
 This class is defined to make the Turtlebot3 robot avoid obstacles in the world where it moves. To do that,
 each time the robot crash, it will be penalized with a very high (negative) reward, but each step the robot moves 
-without crashing, it will receive a small (positive) reward (these values can be changed in the yaml file #TODO). 
+without crashing, the reward will depend on the action taken, so for example, usually the robot will receive more 
+reward if the previous action was to move forward, because in this way the robot will move much faster (these rewards 
+can be changed in the yaml file #TODO). If you don't do that, the robot can realize that turning in one direction
+always can lead to not crashing, so it would reach the maximum reward always without almost moving. 
 For the observations we will use the laser data. This data will be discretized, so we will have 5 laser lectures 
 corresponding to the following 5 laser angle ranges (remember that the angle 0 is the front of the robot): from 
 -90 degrees to -54 degrees, from -54 to -18, from -18 to 18, from 18 to 54 and from 54 to 90. So each one of these 
@@ -90,7 +94,7 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         # Finally we set the observation space which is a box (in this case it is bounded but it can be
         # unbounded). Specifically, a Box represents the Cartesian product of n closed intervals. Each 
         # interval has the form of one of [a, b], (-oo, b], [a, oo), or (-oo, oo). In this case we will
-        # have 5 closed intervals of the form [0,2] because each interval can have 3 posible values #TODO: si cambiamos lo del yaml, cambiar tambien aqui la definicion del espacio de observaciones teniendo en cuenta los posibles valores
+        # have 5 closed intervals of the form [0,1] because each interval can have 2 posible values #TODO: si cambiamos lo del yaml, cambiar tambien aqui la definicion del espacio de observaciones teniendo en cuenta los posibles valores
         num_laser_readings = 5 # Number of laser ranges
         high = numpy.full((num_laser_readings), 1) 
         low = numpy.full((num_laser_readings), 0)
@@ -99,10 +103,12 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         self.observation_space = spaces.Box(low, high, dtype=numpy.int32)
 
 
+    #--------------------- GazeboRobotEnv Methods ---------------------#
     def _set_initial_state(self):
         '''
         Set a initial state for the Turtlebot3. In our case, the initial state is
         a linear and angular speed equal to zero, so the controllers are 'resetted'.
+        We will also set a random initial pose.
         '''
         random_pose = self.initial_poses[random.randint(0,len(self.initial_poses)-1)]
 
@@ -113,13 +119,12 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
 
     def _set_final_state(self): # TODO: define this method in main RobotGazeboEnv class
         '''
-        Set a initial state for the Turtlebot3. In our case, the initial state is
-        a linear and angular speed equal to zero, so the controllers are 'resetted'.
+        Set a final state for the Turtlebot3. In our case, the final state is also
+        a linear and angular speed equal to zero.
         '''
         self.move_base( self.init_linear_forward_speed, self.init_linear_turn_speed, wait_time=self.reset_time)
 
         return True
-
 
     def _execute_action(self, action):
         '''
@@ -129,7 +134,7 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         speed of the Turtlebot3 base.
         '''
         rospy.logdebug("Start Set Action ==>"+str(action))
-
+        
         # We convert the actions numbers to linear and angular speeds:
         if action == 0: #Go forward
             linear_speed = self.linear_forward_speed
@@ -155,7 +160,9 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         This method is used to get the observations of the environment.
 
         In this case, our observations will be computed with the LIDAR readings. In particular,
-        we will discretize these readings in order to have the fewer states as possible.
+        we will discretize these readings in order to have the fewer states as possible (by decreasing
+        the number of laser readings to 5, and by discretizing the continuous laser readings to have only 2
+        possible values).
         '''
 
         rospy.logdebug("Start Get Observation ==>")
@@ -170,7 +177,6 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
 
         return discretized_observations
         
-
     def _is_done(self, observations): # TODO: ten cuidado con los argumentos de cada funcion... recuerda que estas funciones estan ya definidas previamente por lo que no puedes quitar o poner argumentos como uno quiera
         '''
         This method is used to know if a episode has finished or not. It can be based on
@@ -179,16 +185,17 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         In this case, we will use the laser readings to check that. If any of the readings
         has a value less than a given distance, we suppose that the robot is really close of
         an obstacle, so the episode must finish.
+
+        TODO: put args and returns
         '''
         # Initialize the variable
         self.episode_done = False
 
         # Get the laser scan data
         laser_scan = self.laser_scan.ranges
-        for i in laser_scan:
-            if i<self.min_range:
-                self.episode_done = True
-                break
+        min_value = min(laser_scan)
+        if min_value<self.min_range:
+            self.episode_done = True
 
         # if self.episode_done:
         #     rospy.logerr("TurtleBot3 is Too Close to wall==>")
@@ -205,6 +212,8 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
 
         In this case, the reward is based on the fact the agent has collided or not and on the last
         action taken.
+
+        TODO: put args and returns
         '''   
         # The reward will depend on the fact that the episode has finished or not
         if not done:
@@ -217,17 +226,18 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
             reward = self.end_episode_points
         
         return reward
+    #------------------------------------------------------------------#
 
 
-    # Internal TaskEnv Methods
-    
+    #------------------------ Auxiliar Methods ------------------------#    
     def _discretize_scan_observation(self, data):
         '''
         Discretize the laser scan data. To do that, first we take only 180 readings (from 360 readings) that correspond
         to the range [-90,90] degrees (being 0 the front of the robot). Then we take those laser readings and we divide them
         into 5 sections (each one of 36 degrees). In this way the observation will be a list with 5 elements, and each element
-        will have the value of the lowest value read from the corresponding 36 degrees used. Finally, each one of those measurements
-        are again discretized, so instead of having a continuous distances, we will have discrete distances.
+        will have a binary value depending on the minumum distance measured in its corresponding angle range (if the lowest 
+        measurement in that range is less than some threshold, the value of the element would be 0, and it would be 1 if it is 
+        greater). In this way we will have discrete distances making learning faster.
         '''
         # We get only the distance values
         laser_data = data.ranges
@@ -251,3 +261,4 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         rospy.logwarn("Discretized obs " + str(self.discretized_ranges))
 
         return self.discretized_ranges
+    #------------------------------------------------------------------#

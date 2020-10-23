@@ -25,7 +25,7 @@ if __name__ == '__main__':
     rospack = rospkg.RosPack()
     pkg_path = rospack.get_path('rl_turtlebot3') ############## modified
     outdir = pkg_path + '/training_results'
-    env = wrappers.Monitor(env, outdir, force=True)
+    env = wrappers.Monitor(env, outdir, force=True) # TODO: check OpenAI Gym Monitors and Wrappers
     rospy.loginfo("Monitor Wrapper started")
 
     last_time_steps = numpy.ndarray(0)
@@ -52,10 +52,10 @@ if __name__ == '__main__':
     for x in range(nepisodes):
         # if (x%10) == 0 or ((x-1)%10) == 0: env.render(mode="human")
         # else: env.render(mode="close")
-        if x > 1000:
-            env.render(mode="sim")
-        else:
-            env.render("close")
+        # if x > 1000:
+        #     env.render(mode="sim")
+        # else:
+        #     env.render("close")
 
         # rospy.logdebug("############### START EPISODE=>" + str(x))
 

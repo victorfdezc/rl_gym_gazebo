@@ -38,7 +38,7 @@ some plugins fails with this call because /gazebo/reset_simulation also resets t
 plugin doesn't have a proper "Reset" method, it can break (https://github.com/ros-simulation/gazebo_ros_pkgs/issues/169)
 Therefore, with Turtlebot3 it is better to reset the world instead the whole simulation.
 Finally, it has been tested /gazebo/set_model_state service in order to change the model pose. When we call it,
-every sensor work as expected.
+every sensor work as expected (for example, the /odom topic shows the new position).
 
 In conclusion, with Turtlebot3 we must reset the WORLD to avoid breaking the IMU and we can change the model
 pose using /gazebo/set_model_state service.
@@ -79,10 +79,9 @@ class TurtleBot3Env(gazebo_robot_env.GazeboRobotEnv):
     '''
 
     def _check_all_systems_ready(self):
-        """
-        Checks that all the sensors, publishers and other simulation systems are
-        operational.
-        """
+        '''
+        Checks that all the topics (publishers and suscribers) are working correctly.
+        '''
         rospy.logdebug("Checking sensors connection")
         self._check_subscribers_connection("/odom", Odometry)
         self._check_subscribers_connection("/imu", Imu)
@@ -105,25 +104,25 @@ class TurtleBot3Env(gazebo_robot_env.GazeboRobotEnv):
 
     def _odom_callback(self, data):
         '''
-        Receive odometry data from /odom topic
+        Receive odometry data from /odom topic.
         '''
         self.odom = data
     
     def _imu_callback(self, data):
         '''
-        Receive IMU data from /imu topic
+        Receive IMU data from /imu topic.
         '''
         self.imu = data
 
     def _laser_scan_callback(self, data):
         '''
-        Receive laser readings from /scan topic
+        Receive laser readings from /scan topic.
         '''
         self.laser_scan = data
 
     def _check_subscribers_connection(self, topic, msg):
         '''
-        Check that the topic is publishing data
+        Check that the topic is publishing data by waiting for a message.
         '''
         self.data = None
         rospy.logdebug("Waiting for " + str(topic) + " to be READY...")
@@ -138,9 +137,9 @@ class TurtleBot3Env(gazebo_robot_env.GazeboRobotEnv):
         return self.data
 
     def _check_publishers_connection(self, publisher):
-        """
-        Check that the given publisher is working and there is a connection with a subscriber
-        """
+        '''
+        Check that the given publisher is working and there is a connection with a subscriber.
+        '''
         rate = rospy.Rate(10)  # 10hz
         while publisher.get_num_connections() == 0 and not rospy.is_shutdown():
             rospy.logdebug("No subscribers yet, retrying...")
@@ -153,23 +152,20 @@ class TurtleBot3Env(gazebo_robot_env.GazeboRobotEnv):
     def move_base(self, linear_speed, angular_speed, wait_time):
         '''
         This function is used to move the Turtlebot3 base. To do that, the desired
-        linear and angular speed are given. Once we send the control command to the
-        mobile base, we wait a predefined time to make sure that the desired speed has
-        been achieved.
-        :param linear_speed: Speed in the X axis of the robot base frame
-        :param angular_speed: Speed of the angular turning of the robot base frame
+        linear and angular speed are given and are sent with the /cmd_vel topic. 
+        Once we send the control command to the mobile base, we wait a predefined time 
+        to make sure that the action has been executed.
+
+        Args:
+            linear_speed: Speed in the X axis of the robot base frame
+            angular_speed: Speed of the angular turning of the robot base frame
+            wait_time: number of seconds in real time to wait until the action is executed
         '''
         cmd_vel_value = Twist()
         cmd_vel_value.linear.x = linear_speed
         cmd_vel_value.angular.z = angular_speed
-        rospy.logdebug("TurtleBot3 Base Twist Cmd>>" + str(cmd_vel_value))
-        self._check_publishers_connection(self._cmd_vel_pub)
         self._cmd_vel_pub.publish(cmd_vel_value)
 
-        # This function doesn't work properly:
-        # self.wait_until_twist_achieved(cmd_vel_value,
-        #                                 epsilon,
-        #                                 update_rate)
-        time.sleep(wait_time/self.gazebo.rtf) ######################################################################### modified
+        time.sleep(wait_time/self.gazebo.rtf)
         # TODO: make the waiting time a paremeter read from the yaml file and make that the sleep depends on rtf
     #------------------------------------------------------------------#

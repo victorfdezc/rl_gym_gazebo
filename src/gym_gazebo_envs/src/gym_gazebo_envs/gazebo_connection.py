@@ -307,6 +307,8 @@ class GazeboConnection():
 
         NOTE: Remember that Gazebo Simulation must use the use_sim_time=True parameter, so ROS clock is updated
         with the simulation time and not real time.
+
+        TODO: be careful! if this function is executed before the simulation is running, the rtf is not computed correctly!!
         '''
         # Topic to publish RTF:
         pub = rospy.Publisher("/real_time_factor", Float32, queue_size=1)

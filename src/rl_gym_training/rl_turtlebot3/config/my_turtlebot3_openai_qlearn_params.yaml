@@ -3,7 +3,7 @@ turtlebot3:
     # Q-Learning parameters:
     alpha: 0.01
     gamma: 0.9
-    epsilon: 1.0
+    epsilon: 0.5
     epsilon_discount: 0.999
     nepisodes: 100000
     nsteps: 10000 # creo que no se usa esto porque lo tiene implicito en el registro del entorno (se usa en start_qlearning.py -> TODO)
@@ -24,8 +24,8 @@ turtlebot3:
     min_range: 0.15 # Minimum meters below wich we consider we have crashed
 
     # Rewards:
-    forward_reward: 2 # Points Given to go forwards
-    turn_reward: -1 # Points Given to turn as action
+    forward_reward: 1 # Points given to go forwards
+    turn_reward: 0 # Points given to turn as action
     end_episode_points: -200 # Points given when ending an episode
     
     # Initial states:

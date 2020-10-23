@@ -37,7 +37,9 @@ class GazeboRobotEnv(gym.Env):
         
         self.gazebo_version = gazebo_version
         self.seed()
-        # TODO: make a _reset_sim here so the robot is in the initial state? And avoid making the sim reset in GazeboConnection
+        # TODO: make a _reset_sim here so the robot is in the initial state? And avoid making the sim reset in GazeboConnection.
+        # However, in this initialization, the reset will not make anything because later, the turtlebot env checks the topics
+        # by unpausing the simulation.
 
         # Initialize episode variables: #TODO: check that these variables work fine!
         self.episode_num = 0
@@ -167,7 +169,7 @@ class GazeboRobotEnv(gym.Env):
         '''        
         # Shutdown the ROS node:
         rospy.signal_shutdown("Closing GazeboRobotEnvironment")
-        os.popen("killall -9 gzserver gzclient")
+        os.popen("killall -9 gzserver gzclient rosmaster roscore")
 
     def seed(self, seed=None):
         '''
