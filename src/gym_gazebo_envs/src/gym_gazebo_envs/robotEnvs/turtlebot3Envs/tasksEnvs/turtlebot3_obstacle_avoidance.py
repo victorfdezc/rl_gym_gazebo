@@ -172,8 +172,8 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         # And discretize them:
         discretized_observations = self._discretize_scan_observation(laser_scan)
 
-        rospy.logdebug("Observations==>"+str(discretized_observations))
-        rospy.logdebug("END Get Observation ==>")
+        # rospy.logdebug("Observations==>"+str(discretized_observations))
+        # rospy.logdebug("END Get Observation ==>")
 
         return discretized_observations
         
