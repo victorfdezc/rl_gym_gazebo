@@ -61,7 +61,7 @@ ax2.xaxis.set_major_locator(MaxNLocator(integer=True))
 line1, = ax1.plot(x, y_r, 'r-') # Returns a tuple of line objects, thus the comma
 line2, = ax1.plot(x, moving_average(y_r), 'b-') # Returns a tuple of line objects, thus the comma
 line3, = ax2.plot(x, y_s, 'g-') # Returns a tuple of line objects, thus the comma
-line4, = ax2.plot(x, moving_average(y_s), 'darkviolet-') # Returns a tuple of line objects, thus the comma #TODO:change color!!
+line4, = ax2.plot(x, moving_average(y_s), 'm-') # Returns a tuple of line objects, thus the comma #TODO:change color!!
 
 if __name__ == '__main__':
     while not rospy.is_shutdown():
