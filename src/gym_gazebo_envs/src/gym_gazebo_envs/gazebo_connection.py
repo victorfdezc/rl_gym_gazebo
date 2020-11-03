@@ -51,22 +51,17 @@ class GazeboConnection():
         frozen. This means that you cannot receive sensor information and you cannot send control references
         to the actuators if the simulation is paused.
         '''
-
-        rospy.logdebug("PAUSING START")
         # Block the code until the service is available
         rospy.wait_for_service('/gazebo/pause_physics')
-        rospy.logdebug("PAUSING service found...")
-
+        
         paused_done = False
         counter = 0
         # We try to pause the simulation until we reach the maximum tries or until the service call have succeded
         while not paused_done and not rospy.is_shutdown():
             if counter < self._max_retry:
                 try:
-                    rospy.logdebug("PAUSING service calling...")
                     self.pause()
                     paused_done = True
-                    rospy.logdebug("PAUSING service calling...DONE")
                 except rospy.ServiceException as e:
                     counter += 1
                     rospy.logerr("/gazebo/pause_physics service call failed")
@@ -77,17 +72,13 @@ class GazeboConnection():
 
         self.sim_paused = True
 
-        rospy.logdebug("PAUSING FINISH")
-
     def unpauseSim(self):
         '''
         This method is used to unpause the simulation using the Gazebo services previously defined.
         '''
 
-        rospy.logdebug("UNPAUSING START")
         # Block the code until the service is available
         rospy.wait_for_service('/gazebo/unpause_physics')
-        rospy.logdebug("UNPAUSING service found...")
 
         unpaused_done = False
         counter = 0
@@ -95,10 +86,8 @@ class GazeboConnection():
         while not unpaused_done and not rospy.is_shutdown():
             if counter < self._max_retry:
                 try:
-                    rospy.logdebug("UNPAUSING service calling...")
                     self.unpause()
                     unpaused_done = True
-                    rospy.logdebug("UNPAUSING service calling...DONE")
                 except rospy.ServiceException as e:
                     counter += 1
                     rospy.logerr("/gazebo/unpause_physics service call failed")
@@ -109,9 +98,6 @@ class GazeboConnection():
 
         self.sim_paused = False
 
-        rospy.logdebug("UNPAUSING FINISH")
-
-
     def resetSim(self):
         '''
         This method is used to reset the simulation depending on the parameter reset_world_or_sim, so the way
@@ -121,15 +107,13 @@ class GazeboConnection():
         the objects pose using the /gazebo/reset_world service.
         '''
         if self.reset_world_or_sim == "SIMULATION":
-            rospy.logdebug("SIMULATION RESET")
             self.resetSimulation()
         elif self.reset_world_or_sim == "WORLD":
-            rospy.logdebug("WORLD RESET")
             self.resetWorld()
         elif self.reset_world_or_sim == "NO_RESET_SIM":
-            rospy.logdebug("NO RESET SIMULATION SELECTED")
+            pass
         else:
-            rospy.logdebug("WRONG Reset Option:"+str(self.reset_world_or_sim))
+            rospy.logerr("Wrong Reset Option:"+str(self.reset_world_or_sim))
 
     def resetSimulation(self):
         '''
@@ -138,10 +122,8 @@ class GazeboConnection():
         NOTE: this way of resetting the simulation can break some Gazebo plugins, like sensors.
         '''
 
-        rospy.logdebug("RESET START")
         # Block the code until the service is available
         rospy.wait_for_service('/gazebo/reset_simulation')
-        rospy.logdebug("RESET service found...")
 
         reset_done = False
         counter = 0
@@ -149,10 +131,8 @@ class GazeboConnection():
         while not reset_done and not rospy.is_shutdown():
             if counter < self._max_retry:
                 try:
-                    rospy.logdebug("RESET service calling...")
                     self.reset_simulation()
                     reset_done = True
-                    rospy.logdebug("RESET service calling...DONE")
                 except rospy.ServiceException as e:
                     counter += 1
                     rospy.logerr("/gazebo/reset_simulation service call failed")
@@ -160,18 +140,13 @@ class GazeboConnection():
                 error_message = "Maximum retries done"+str(self._max_retry)+", please check Gazebo reset service"
                 rospy.logerr(error_message)
                 assert False, error_message
-
-        rospy.logdebug("RESET FINISH")
 
     def resetWorld(self):
         '''
         Resets the Gazebo simulation, but only models pose.
         '''
-
-        rospy.logdebug("RESET START")
         # Block the code until the service is available
         rospy.wait_for_service('/gazebo/reset_world')
-        rospy.logdebug("RESET service found...")
 
         reset_done = False
         counter = 0
@@ -179,10 +154,8 @@ class GazeboConnection():
         while not reset_done and not rospy.is_shutdown():
             if counter < self._max_retry:
                 try:
-                    rospy.logdebug("RESET service calling...")
                     self.reset_world()
                     reset_done = True
-                    rospy.logdebug("RESET service calling...DONE")
                 except rospy.ServiceException as e:
                     counter += 1
                     rospy.logerr("/gazebo/reset_simulation service call failed")
@@ -190,8 +163,6 @@ class GazeboConnection():
                 error_message = "Maximum retries done"+str(self._max_retry)+", please check Gazebo reset service"
                 rospy.logerr(error_message)
                 assert False, error_message
-
-        rospy.logdebug("RESET FINISH")
 
     def init_physics_parameters(self):
         '''
@@ -234,10 +205,8 @@ class GazeboConnection():
         set_physics_msg.gravity = self._gravity
         set_physics_msg.ode_config = self._ode_config
 
-        rospy.logdebug("CHANGING PHYSICS PARAMETERS START")
         # Block the code until the service is available
         rospy.wait_for_service('/gazebo/set_physics_properties')
-        rospy.logdebug("CHANGING PHYSICS PARAMETERS service found...")
 
         changed_physics_done = False
         counter = 0
@@ -245,10 +214,8 @@ class GazeboConnection():
         while not changed_physics_done and not rospy.is_shutdown():
             if counter < self._max_retry:
                 try:
-                    rospy.logdebug("CHANGING PHYSICS PARAMETERS service calling...")
                     self.set_physics(set_physics_msg)
                     changed_physics_done = True
-                    rospy.logdebug("CHANGING PHYSICS PARAMETERS service calling...DONE")
                 except rospy.ServiceException as e:
                     counter += 1
                     rospy.logerr("/gazebo/set_physics_properties service call failed")
@@ -256,8 +223,6 @@ class GazeboConnection():
                 error_message = "Maximum retries done"+str(self._max_retry)+", please check Gazebo set_physics_properties service"
                 rospy.logerr(error_message)
                 assert False, error_message
-
-        rospy.logdebug("CHANGING PHYSICS FINISH")
 
     def setModelState(self, model, x, y, z, tx, ty, tz, tw, frame="world"):
         '''
@@ -274,10 +239,8 @@ class GazeboConnection():
         state_msg.pose.orientation.w = tw
         state_msg.reference_frame = frame
 
-        rospy.logdebug("CHANGING MODEL STATE START")
         # Block the code until the service is available
         rospy.wait_for_service('/gazebo/set_model_state')
-        rospy.logdebug("CHANGING MODEL STATE service found...")
 
         changed_state_done = False
         counter = 0
@@ -285,10 +248,8 @@ class GazeboConnection():
         while not changed_state_done and not rospy.is_shutdown():
             if counter < self._max_retry:
                 try:
-                    rospy.logdebug("CHANGING MODEL STATE service calling...")
                     self.set_model_state(state_msg)
                     changed_state_done = True
-                    rospy.logdebug("CHANGING MODEL STATE service calling...DONE")
                 except rospy.ServiceException as e:
                     counter += 1
                     rospy.logerr("/gazebo/set_model_state service call failed")
@@ -296,8 +257,6 @@ class GazeboConnection():
                 error_message = "Maximum retries done"+str(self._max_retry)+", please check Gazebo set_model_state service"
                 rospy.logerr(error_message)
                 assert False, error_message
-
-        rospy.logdebug("CHANGING MODEL STATE FINISH")
 
     def compute_rtf(self):
         '''

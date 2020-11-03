@@ -99,4 +99,6 @@ if __name__ == '__main__':
             fig1.canvas.flush_events()
             fig2.canvas.flush_events()
 
-            r.sleep()
+            rospy.loginfo("Average Reward/Steps for the last 100 episodes: {:0.2f} / {:0.2f}".format(rewards[-100:].mean(),steps[-100:].mean()))
+
+        r.sleep()

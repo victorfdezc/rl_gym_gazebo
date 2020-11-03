@@ -49,8 +49,6 @@ class TurtleBot3Env(gazebo_robot_env.GazeboRobotEnv):
         '''
         Initializes a new TurtleBot3Env environment.
         '''
-        rospy.logdebug("Start TurtleBot3Env INIT...")
-
         # We launch the init function of the parent class robot_gazebo_env.GazeboRobotEnv
         # Remember to reset the WORLD and not the whole simulation:
         super(TurtleBot3Env, self).__init__(reset_world_or_sim="WORLD")
@@ -68,9 +66,6 @@ class TurtleBot3Env(gazebo_robot_env.GazeboRobotEnv):
         rospy.Subscriber("/scan", LaserScan, self._laser_scan_callback)
         # Once we know that all systems are fine, we can pause the simulation again:
         self.gazebo.pauseSim()
-        
-        rospy.logdebug("Finished TurtleBot3Env INIT...")
-
         
     #--------------------- GazeboRobotEnv Methods ---------------------#
     '''
@@ -125,12 +120,9 @@ class TurtleBot3Env(gazebo_robot_env.GazeboRobotEnv):
         Check that the topic is publishing data by waiting for a message.
         '''
         self.data = None
-        rospy.logdebug("Waiting for " + str(topic) + " to be READY...")
         while self.data is None and not rospy.is_shutdown():
             try:
                 self.data = rospy.wait_for_message(topic, msg, timeout=1.0)
-                rospy.logdebug("Current " + str(topic) + " READY=>")
-
             except:
                 rospy.logerr("Current " + str(topic) + " not ready yet, retrying...")
 
@@ -142,12 +134,11 @@ class TurtleBot3Env(gazebo_robot_env.GazeboRobotEnv):
         '''
         rate = rospy.Rate(10)  # 10hz
         while publisher.get_num_connections() == 0 and not rospy.is_shutdown():
-            rospy.logdebug("No subscribers yet, retrying...")
+            rospy.logerr("No subscribers yet, retrying...")
             try:
                 rate.sleep()
             except rospy.ROSInterruptException:
                 pass
-        rospy.logdebug("Publisher Connected")
     
     def move_base(self, linear_speed, angular_speed, wait_time):
         '''

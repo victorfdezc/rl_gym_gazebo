@@ -32,7 +32,6 @@ class GazeboRobotEnv(gym.Env):
     def __init__(self, reset_world_or_sim="SIMULATION", gazebo_version="ros"):
 
         # Initialize Gazebo connection to control the Gazebo simulation
-        rospy.logdebug("START init GazeboRobotEnv")
         self.gazebo = GazeboConnection(reset_world_or_sim)
         
         self.gazebo_version = gazebo_version
@@ -51,7 +50,6 @@ class GazeboRobotEnv(gym.Env):
 
         self.metadata = {'render.modes': ['human', 'sim', 'close']}
 
-        rospy.logdebug("END init GazeboRobotEnv")
 
     #--------------------- gym.Env main Methods ---------------------#
     def step(self, action):
@@ -71,8 +69,6 @@ class GazeboRobotEnv(gym.Env):
             done (bool): whether the episode has ended, in which case further step() calls will return undefined results
             info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)
         '''
-        rospy.logdebug("START STEP OpenAIROS")
-
         # Run a step in the simulation given the action:
         self._sim_step(action)
 
@@ -93,8 +89,6 @@ class GazeboRobotEnv(gym.Env):
         # This dictionary is used to debug. In this case we don't need it so we return an empty dict:
         info = {}
 
-        rospy.logdebug("END STEP OpenAIROS")
-
         return obs, reward, done, info
 
     def reset(self):
@@ -109,12 +103,10 @@ class GazeboRobotEnv(gym.Env):
         # TODO: aqui es donde deberia hacer lo de resetear los controladores a partir de esperar un tiempo a 
         # que el robot vuelva a un estado inicial.
 
-        rospy.logdebug("Reseting GazeboRobotEnvironment")
         self._publish_episode_info_topic()
         self._update_env_variables()
         self._reset_sim()
         obs = self._get_obs()
-        rospy.logdebug("END Reseting GazeboRobotEnvironment")
         return obs
 
     def render(self, mode='human'):
@@ -216,8 +208,6 @@ class GazeboRobotEnv(gym.Env):
         '''
         This method is used to reset a Gazebo simulation
         '''
-        rospy.logdebug("RESET SIM START")
-
         # Start the simulation
         self.gazebo.unpauseSim()
         # And set a final state to the robot
@@ -236,8 +226,6 @@ class GazeboRobotEnv(gym.Env):
         self._check_all_systems_ready()
         # Finally, pause the simulation again
         self.gazebo.pauseSim()
-
-        rospy.logdebug("RESET SIM END")
         
         return True
 

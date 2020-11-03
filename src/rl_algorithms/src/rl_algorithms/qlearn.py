@@ -1,60 +1,63 @@
-'''
-Q-learning approach for different RL problems
-as part of the basic series on reinforcement learning @
-https://github.com/vmayoral/basic_reinforcement_learning
- 
-Inspired by https://gym.openai.com/evaluations/eval_kWknKOkPQ7izrixdhriurA
- 
-        @author: Victor Mayoral Vilches <victor@erlerobotics.com>
-'''
-import random
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import numpy as np
+
 
 class QLearn:
-    def __init__(self, actions, epsilon, alpha, gamma):
-        self.q = {}
-        self.epsilon = epsilon  # exploration constant
-        self.alpha = alpha      # discount constant
-        self.gamma = gamma      # discount factor
-        self.actions = actions
+    '''
+    Clase que implementa el algoritmo de Q-Learning tabular
+    '''
+    def __init__(self, env, epsilon=0.1, lr=0.2, gamma=0.9):
+        # Iniciamos Q(s,a) como un diccionario vacío. Los diccionarios están 
+        # muy bien optimizados en Python, pudiendo buscar en ellos con 
+        # complejidad computacional O(1) (los diccionarios son tablas hash). 
+        # Los diccionarios son mejores que las listas (estos tienen complejidad
+        # O(n)). Por tanto, la solución más rápida en Python es por medio del 
+        # uso de diccionarios para almacenar los estados y acciones con su 
+        # retorno esperado correspondiente:
+        self.Q = {} # Q-table
+
+        self.epsilon = epsilon  # Constante de exploración
+        self.learning_rate = lr # Tasa de aprendizaje
+        self.gamma = gamma # Tasa de descuento (recompensas futuras)
+        self.env = env
+
+        # Obtenemos las posibles acciones por medio del atributo de 
+        # espacio de acciones del entorno: 
+        self.actions = range(env.action_space.n)
 
     def getQ(self, state, action):
-        return self.q.get((state, action), 0.0)
-
-    def learnQ(self, state, action, reward, value):
         '''
-        Q-learning:
-            Q(s, a) += alpha * (reward(s,a) + max(Q(s') - Q(s,a))            
+        Función para obtener el valor de Q(s,a) dado s y a. En caso
+        de que todavía no tengamos un valor de Q(s,a) inicializado para
+        esa tupla, devolveremos un valor de 0.0.
         '''
-        oldv = self.q.get((state, action), None)
-        if oldv is None:
-            self.q[(state, action)] = reward
+        return self.Q.get((state, action), 0.0)
+
+    def chooseAction(self, state):
+        '''
+        Epsilon-Greedy
+        '''
+        if np.random.random() < self.epsilon:
+            # Acción aleatoria
+            return self.env.action_space.sample()
         else:
-            self.q[(state, action)] = oldv + self.alpha * (value - oldv)
+            # Mejor acción posible a partir de la estimación actual de Q(s,a)
+            return np.argmax([self.getQ(state, a) for a in self.actions])
 
-    def chooseAction(self, state, return_q=False):
-        q = [self.getQ(state, a) for a in self.actions]
-        maxQ = max(q)
-
-        if random.random() < self.epsilon:
-            minQ = min(q); mag = max(abs(minQ), abs(maxQ))
-            # add random values to all the actions, recalculate maxQ
-            q = [q[i] + random.random() * mag - .5 * mag for i in range(len(self.actions))] 
-            maxQ = max(q)
-
-        count = q.count(maxQ)
-        # In case there're several state-action max values 
-        # we select a random one among them
-        if count > 1:
-            best = [i for i in range(len(self.actions)) if q[i] == maxQ]
-            i = random.choice(best)
-        else:
-            i = q.index(maxQ)
-
-        action = self.actions[i]        
-        if return_q: # if they want it, give it!
-            return action, q
-        return action
-
-    def learn(self, state1, action1, reward, state2):
-        maxqnew = max([self.getQ(state2, a) for a in self.actions])
-        self.learnQ(state1, action1, reward, reward + self.gamma*maxqnew)
+    def learn(self, current_state, current_action, next_reward, next_state):
+        '''
+        Aplicamos la ecuación de actualización de Q(s,a) basada en descenso 
+        del gradiente:
+            Q(s, a) = Q(s, a) + lr * ((reward + gamma * max(Q(s'))) - Q(s,a))
+        '''
+        oldQ = self.Q.get((current_state, current_action), None)
+        # En caso de no encontrar la tupla (current_state, current_action), 
+        # inicializamos su valor de Q como la recompensa obtenida:
+        if oldQ is None:
+            oldQ = next_reward
+        # Calculamos la estimación del retorno esperado:
+        G = next_reward + self.gamma * np.max([self.getQ(next_state, next_action) for next_action in self.actions])
+        # Actualizamos Q(s,a) con la ecuación de descenso del gradiente:
+        self.Q[(current_state, current_action)] = oldQ + self.learning_rate * (G - oldQ)

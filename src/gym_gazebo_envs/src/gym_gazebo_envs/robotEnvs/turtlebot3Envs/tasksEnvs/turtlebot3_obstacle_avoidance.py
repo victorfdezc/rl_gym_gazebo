@@ -57,27 +57,26 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         # First we load all the parameters defined in the .yaml file.
         
         # Actions:
-        self.number_actions = rospy.get_param('/turtlebot3/n_actions')
-        self.linear_forward_speed = rospy.get_param('/turtlebot3/linear_forward_speed')
-        self.linear_turn_speed = rospy.get_param('/turtlebot3/linear_turn_speed')
-        self.angular_speed = rospy.get_param('/turtlebot3/angular_speed')
-        self.step_time = rospy.get_param('/turtlebot3/step_time')
-        self.reset_time = rospy.get_param('/turtlebot3/reset_time')
+        self.linear_forward_speed = rospy.get_param('/turtlebot3_qlearn/linear_forward_speed')
+        self.linear_turn_speed = rospy.get_param('/turtlebot3_qlearn/linear_turn_speed')
+        self.angular_speed = rospy.get_param('/turtlebot3_qlearn/angular_speed')
+        self.step_time = rospy.get_param('/turtlebot3_qlearn/step_time')
+        self.reset_time = rospy.get_param('/turtlebot3_qlearn/reset_time')
         
         # Observation:
-        self.angle_ranges = rospy.get_param("/turtlebot3/angle_ranges")
-        self.distance_ranges = rospy.get_param("/turtlebot3/distance_ranges")
-        self.min_range = rospy.get_param('/turtlebot3/min_range')
+        self.angle_ranges = rospy.get_param("/turtlebot3_qlearn/angle_ranges")
+        self.distance_ranges = rospy.get_param("/turtlebot3_qlearn/distance_ranges")
+        self.min_range = rospy.get_param('/turtlebot3_qlearn/min_range')
 
         # Rewards:
-        self.forward_reward = rospy.get_param("/turtlebot3/forward_reward")
-        self.turn_reward = rospy.get_param("/turtlebot3/turn_reward")
-        self.end_episode_points = rospy.get_param("/turtlebot3/end_episode_points")
+        self.forward_reward = rospy.get_param("/turtlebot3_qlearn/forward_reward")
+        self.turn_reward = rospy.get_param("/turtlebot3_qlearn/turn_reward")
+        self.end_episode_points = rospy.get_param("/turtlebot3_qlearn/end_episode_points")
 
         # Initial states:
-        self.init_linear_forward_speed = rospy.get_param('/turtlebot3/init_linear_forward_speed')
-        self.init_linear_turn_speed = rospy.get_param('/turtlebot3/init_linear_turn_speed')
-        self.initial_poses = rospy.get_param("/turtlebot3/initial_poses")
+        self.init_linear_forward_speed = rospy.get_param('/turtlebot3_qlearn/init_linear_forward_speed')
+        self.init_linear_turn_speed = rospy.get_param('/turtlebot3_qlearn/init_linear_turn_speed')
+        self.initial_poses = rospy.get_param("/turtlebot3_qlearn/initial_poses")
 
 
         # Now we are going to define the attributes needed to make a Gym environment.
@@ -85,7 +84,7 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         # First we define our action_space. In this case, the action_space is discrete 
         # and it has 3 possible values (it must be a Space object, in this case, 
         # a Discrete space object):
-        self.action_space = spaces.Discrete(self.number_actions)
+        self.action_space = spaces.Discrete(3)
         
         # We set the reward range, that in this case can have any positive or negative value. This
         # must be a tuple:
@@ -132,9 +131,7 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
 
         In this case, based on the action number given, we will set the linear and angular
         speed of the Turtlebot3 base.
-        '''
-        rospy.logdebug("Start Set Action ==>"+str(action))
-        
+        '''        
         # We convert the actions numbers to linear and angular speeds:
         if action == 0: #Go forward
             linear_speed = self.linear_forward_speed
@@ -153,8 +150,6 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         # We tell to TurtleBot3 the linear and angular speed to execute
         self.move_base(linear_speed, angular_speed, wait_time=self.step_time)
         
-        rospy.logdebug("END Set Action ==>"+str(action))
-
     def _get_obs(self):
         '''
         This method is used to get the observations of the environment.
@@ -164,16 +159,10 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         the number of laser readings to 5, and by discretizing the continuous laser readings to have only 2
         possible values).
         '''
-
-        rospy.logdebug("Start Get Observation ==>")
-
         # We get the laser scan data
         laser_scan = self.laser_scan
         # And discretize them:
         discretized_observations = self._discretize_scan_observation(laser_scan)
-
-        # rospy.logdebug("Observations==>"+str(discretized_observations))
-        # rospy.logdebug("END Get Observation ==>")
 
         return discretized_observations
         
@@ -195,12 +184,7 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         laser_scan = self.laser_scan.ranges
         min_value = min(laser_scan)
         if min_value<self.min_range:
-            self.episode_done = True
-
-        # if self.episode_done:
-        #     rospy.logerr("TurtleBot3 is Too Close to wall==>")
-        # else:
-        #     rospy.logwarn("TurtleBot3 is NOT close to a wall ==>")       
+            self.episode_done = True    
 
         return self.episode_done
 
@@ -258,7 +242,7 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         # most left angle range in the real robot: # TODO: explain this better
         self.discretized_ranges = discretized_ranges[::-1]
 
-        rospy.logwarn("Discretized obs " + str(self.discretized_ranges))
+        # rospy.logdebug("Discretized obs " + str(self.discretized_ranges))
 
         return self.discretized_ranges
     #------------------------------------------------------------------#
