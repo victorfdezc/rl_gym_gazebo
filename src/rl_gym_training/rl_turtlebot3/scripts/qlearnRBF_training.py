@@ -34,7 +34,7 @@ if __name__ == '__main__':
                     ("rbf4", RBFSampler(gamma=0.1, n_components=500)),
                     ("rbf5", RBFSampler(gamma=5.0, n_components=500)),
                     ("rbf6", RBFSampler(gamma=2.0, n_components=500))]
-    observation_examples = np.random.random((20000, 5))*4.0
+    observation_examples =  np.array([env.observation_space.sample() for x in range(20000)])
 
     # Initialises Q-Learning
     qlearn = qlearnRBF.QLearnRBF(env=env, epsilon=epsilon, lr=lr, gamma=gamma, 

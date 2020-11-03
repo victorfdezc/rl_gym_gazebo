@@ -16,6 +16,7 @@ turtlebot3_qlearnRBF:
     reset_time: 0.5 # Number of seconds (in real time) we wait until the robot reaches its final state (in reset phases)
 
     # Observation parameters:
+    max_distance: 1.5 # Maximum distance in meters we can measure
     angle_ranges: [[-90,-54],[-54,-18],[-18,18],[18,54],[54,90]] # Laser scan angle intervals taken into account for each observation value
     min_range: 0.15 # Minimum meters below wich we consider we have crashed
 

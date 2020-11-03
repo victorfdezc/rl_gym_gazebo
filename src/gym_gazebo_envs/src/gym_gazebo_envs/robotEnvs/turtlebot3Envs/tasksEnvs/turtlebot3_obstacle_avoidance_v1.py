@@ -64,6 +64,7 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         self.reset_time = rospy.get_param('/turtlebot3_qlearnRBF/reset_time')
         
         # Observation:
+        self.max_distance = rospy.get_param("/turtlebot3_qlearnRBF/max_distance")
         self.angle_ranges = rospy.get_param("/turtlebot3_qlearnRBF/angle_ranges")
         self.min_range = rospy.get_param('/turtlebot3_qlearnRBF/min_range')
 
@@ -92,13 +93,11 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         # Finally we set the observation space which is a box (in this case it is bounded but it can be
         # unbounded). Specifically, a Box represents the Cartesian product of n closed intervals. Each 
         # interval has the form of one of [a, b], (-oo, b], [a, oo), or (-oo, oo). In this case we will
-        # have 5 closed intervals of the form [0,1] because each interval can have 2 posible values #TODO: si cambiamos lo del yaml, cambiar tambien aqui la definicion del espacio de observaciones teniendo en cuenta los posibles valores
+        # have 5 closed intervals of the form [0,max_distance]
         num_laser_readings = 5 # Number of laser ranges
-        high = numpy.full((num_laser_readings), 1) 
-        low = numpy.full((num_laser_readings), 0)
-        # Now we can create the Box space. Remember that the possible values for each range is an integer 
-        # between 0 and 2, so it must be casted to int32:
-        self.observation_space = spaces.Box(low, high, dtype=numpy.int32)
+        high = numpy.full((num_laser_readings), self.max_distance) 
+        low = numpy.full((num_laser_readings), 0.0)
+        self.observation_space = spaces.Box(low, high, dtype=numpy.float32)
 
 
     #--------------------- GazeboRobotEnv Methods ---------------------#
@@ -229,8 +228,8 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         for r in self.angle_ranges:
             # From each section we get the lowest value
             min_value = min([laser_data[i] for i in range(r[0],r[1])])
-            if min_value > 4.0:
-                discretized_ranges.append(4.0)
+            if min_value > self.max_distance:
+                discretized_ranges.append(self.max_distance)
             else:
                 discretized_ranges.append(min_value)
 
@@ -238,7 +237,7 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         # most left angle range in the real robot: # TODO: explain this better
         self.discretized_ranges = discretized_ranges[::-1]
 
-        rospy.loginfo("Discretized obs " + str(self.discretized_ranges))
+        # rospy.loginfo("Discretized obs " + str(self.discretized_ranges))
 
         return self.discretized_ranges
     #------------------------------------------------------------------#
