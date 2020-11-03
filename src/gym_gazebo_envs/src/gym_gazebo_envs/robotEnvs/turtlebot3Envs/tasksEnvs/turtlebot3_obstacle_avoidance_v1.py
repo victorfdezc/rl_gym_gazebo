@@ -21,8 +21,8 @@ To register an environment, we have the following arguments:
         * kwargs (dict): The kwargs to pass to the environment class
 '''
 register(
-        id = 'TurtleBot3ObstacleAvoidance-v0',
-        entry_point = 'gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs.turtlebot3_obstacle_avoidance_v0:TurtleBot3ObstacleAvoidanceEnv',
+        id = 'TurtleBot3ObstacleAvoidance-v1',
+        entry_point = 'gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs.turtlebot3_obstacle_avoidance_v1:TurtleBot3ObstacleAvoidanceEnv',
         max_episode_steps = 1000
     )
 
@@ -57,26 +57,25 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         # First we load all the parameters defined in the .yaml file.
         
         # Actions:
-        self.linear_forward_speed = rospy.get_param('/turtlebot3_qlearn/linear_forward_speed')
-        self.linear_turn_speed = rospy.get_param('/turtlebot3_qlearn/linear_turn_speed')
-        self.angular_speed = rospy.get_param('/turtlebot3_qlearn/angular_speed')
-        self.step_time = rospy.get_param('/turtlebot3_qlearn/step_time')
-        self.reset_time = rospy.get_param('/turtlebot3_qlearn/reset_time')
+        self.linear_forward_speed = rospy.get_param('/turtlebot3_qlearnRBF/linear_forward_speed')
+        self.linear_turn_speed = rospy.get_param('/turtlebot3_qlearnRBF/linear_turn_speed')
+        self.angular_speed = rospy.get_param('/turtlebot3_qlearnRBF/angular_speed')
+        self.step_time = rospy.get_param('/turtlebot3_qlearnRBF/step_time')
+        self.reset_time = rospy.get_param('/turtlebot3_qlearnRBF/reset_time')
         
         # Observation:
-        self.angle_ranges = rospy.get_param("/turtlebot3_qlearn/angle_ranges")
-        self.distance_ranges = rospy.get_param("/turtlebot3_qlearn/distance_ranges")
-        self.min_range = rospy.get_param('/turtlebot3_qlearn/min_range')
+        self.angle_ranges = rospy.get_param("/turtlebot3_qlearnRBF/angle_ranges")
+        self.min_range = rospy.get_param('/turtlebot3_qlearnRBF/min_range')
 
         # Rewards:
-        self.forward_reward = rospy.get_param("/turtlebot3_qlearn/forward_reward")
-        self.turn_reward = rospy.get_param("/turtlebot3_qlearn/turn_reward")
-        self.end_episode_points = rospy.get_param("/turtlebot3_qlearn/end_episode_points")
+        self.forward_reward = rospy.get_param("/turtlebot3_qlearnRBF/forward_reward")
+        self.turn_reward = rospy.get_param("/turtlebot3_qlearnRBF/turn_reward")
+        self.end_episode_points = rospy.get_param("/turtlebot3_qlearnRBF/end_episode_points")
 
         # Initial states:
-        self.init_linear_forward_speed = rospy.get_param('/turtlebot3_qlearn/init_linear_forward_speed')
-        self.init_linear_turn_speed = rospy.get_param('/turtlebot3_qlearn/init_linear_turn_speed')
-        self.initial_poses = rospy.get_param("/turtlebot3_qlearn/initial_poses")
+        self.init_linear_forward_speed = rospy.get_param('/turtlebot3_qlearnRBF/init_linear_forward_speed')
+        self.init_linear_turn_speed = rospy.get_param('/turtlebot3_qlearnRBF/init_linear_turn_speed')
+        self.initial_poses = rospy.get_param("/turtlebot3_qlearnRBF/initial_poses")
 
 
         # Now we are going to define the attributes needed to make a Gym environment.
@@ -230,19 +229,16 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         for r in self.angle_ranges:
             # From each section we get the lowest value
             min_value = min([laser_data[i] for i in range(r[0],r[1])])
-            # And we discretize this value
-            if min_value < self.distance_ranges[0]:
-                discretized_ranges.append(0)
-            # elif  min_value < self.distance_ranges[1]:
-            #     discretized_ranges.append(1)
+            if min_value > 4.0:
+                discretized_ranges.append(4.0)
             else:
-                discretized_ranges.append(1)
+                discretized_ranges.append(min_value)
 
         # We reverse the list so the first element in the list (the most left element) correspond to the
         # most left angle range in the real robot: # TODO: explain this better
         self.discretized_ranges = discretized_ranges[::-1]
 
-        # rospy.loginfo("Discretized obs " + str(self.discretized_ranges))
+        rospy.loginfo("Discretized obs " + str(self.discretized_ranges))
 
         return self.discretized_ranges
     #------------------------------------------------------------------#

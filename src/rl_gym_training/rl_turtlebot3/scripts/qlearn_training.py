@@ -7,7 +7,7 @@ import rospy
 import rospkg
 from rl_algorithms import qlearn
 # Import the environment to register it
-from gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs import turtlebot3_obstacle_avoidance
+from gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs import turtlebot3_obstacle_avoidance_v0
 
 
 def build_state(features):

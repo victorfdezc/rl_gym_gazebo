@@ -2,37 +2,48 @@
 
 import gym
 from gym import wrappers
+import numpy as np
 import time
 import rospy
 import rospkg
 from rl_algorithms import qlearnRBF
+from sklearn.kernel_approximation import RBFSampler
 # Import the environment to register it
-from gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs import turtlebot3_obstacle_avoidance
+from gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs import turtlebot3_obstacle_avoidance_v1
 
 
 if __name__ == '__main__':
     # Start ROS node
-    rospy.init_node('turtlebot3_obstacle_avoidance_qlearn', anonymous=True)
+    rospy.init_node('turtlebot3_obstacle_avoidance_qlearnRBF', anonymous=True)
 
     # Create the Gym environment
-    env = gym.make('TurtleBot3ObstacleAvoidance-v0')
+    env = gym.make('TurtleBot3ObstacleAvoidance-v1')
 
     # Loads parameters from the ROS param server. Parameters are stored in a 
     # .yaml file inside the /config directory. They are loaded at runtime by 
     # the launch file:
-    lr = rospy.get_param("/turtlebot3_qlearn/learning_rate")
-    epsilon = rospy.get_param("/turtlebot3_qlearn/epsilon")
-    gamma = rospy.get_param("/turtlebot3_qlearn/gamma")
-    epsilon_discount = rospy.get_param("/turtlebot3_qlearn/epsilon_discount")
-    nepisodes = rospy.get_param("/turtlebot3_qlearn/nepisodes")
+    lr = rospy.get_param("/turtlebot3_qlearnRBF/learning_rate")
+    epsilon = rospy.get_param("/turtlebot3_qlearnRBF/epsilon")
+    gamma = rospy.get_param("/turtlebot3_qlearnRBF/gamma")
+    epsilon_discount = rospy.get_param("/turtlebot3_qlearnRBF/epsilon_discount")
+    nepisodes = rospy.get_param("/turtlebot3_qlearnRBF/nepisodes")
+
+    rbf_samplers = [("rbf1", RBFSampler(gamma=0.05, n_components=500)),
+                    ("rbf2", RBFSampler(gamma=1.0, n_components=1000)),
+                    ("rbf3", RBFSampler(gamma=0.5, n_components=1000)),
+                    ("rbf4", RBFSampler(gamma=0.1, n_components=500)),
+                    ("rbf5", RBFSampler(gamma=5.0, n_components=500)),
+                    ("rbf6", RBFSampler(gamma=2.0, n_components=500))]
+    training_examples = np.random.random((20000, 5))*4.0
 
     # Initialises Q-Learning
-    qlearn = qlearn.QLearn(env=env, epsilon=epsilon, lr=lr, gamma=gamma)
+    qlearn = qlearnRBF.QLearnRBF(env=env, epsilon=epsilon, lr=lr, gamma=gamma, 
+                rbf_samplers=rbf_samplers, training_examples=training_examples)
 
     # Init Gym Monitor
     rospack = rospkg.RosPack()
     pkg_path = rospack.get_path('rl_turtlebot3')
-    outdir = pkg_path + '/training_results_qlearn'
+    outdir = pkg_path + '/training_results_qlearnRBF'
     env = wrappers.Monitor(env, outdir, force=True)
 
     start_time = time.time()
@@ -50,8 +61,7 @@ if __name__ == '__main__':
             qlearn.epsilon *= epsilon_discount
 
         # Initialize the environment and get first state of the robot
-        observation = env.reset()
-        state = build_state(observation)
+        state = env.reset()
 
         done = False
         episode_reward = 0
@@ -60,8 +70,7 @@ if __name__ == '__main__':
             # Choose an action based on the state
             action = qlearn.chooseAction(state)
             # Execute the action in the environment
-            observation, reward, done, info = env.step(action)
-            next_state = build_state(observation)
+            next_state, reward, done, info = env.step(action)
 
             # Make the algorithm learn based on the results
             qlearn.learn(state, action, reward, next_state)
