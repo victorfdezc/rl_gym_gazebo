@@ -7,7 +7,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.kernel_approximation import RBFSampler
 
 class QLearnRBF:
-    def __init__(self, env, epsilon=0.1, lr=0.1, gamma=0.99, reg_term=0.0, rbf_samplers = None, training_examples = None):
+    def __init__(self, env, epsilon=0.1, lr=0.1, gamma=0.99, reg_term=0.0, rbf_samplers = None, observation_examples = None):
         self.env = env
         self.epsilon = epsilon # Exploration constant (Epsilon-Greedy)
         self.gamma = gamma # Discount factor
@@ -15,7 +15,8 @@ class QLearnRBF:
 
         # RBF kernels implementation example with Scikit-learn (RBF feature extraction)
         if rbf_samplers == None:
-            observation_examples = np.array([env.observation_space.sample() for x in range(10000)])
+            if observation_examples == None:
+                observation_examples = np.array([env.observation_space.sample() for x in range(10000)])
 
             scaler = StandardScaler()
             scaler.fit(observation_examples)
@@ -30,9 +31,9 @@ class QLearnRBF:
             featurizer.fit(scaler.transform(observation_examples))
         else:
             scaler = StandardScaler()
-            scaler.fit(training_examples)
+            scaler.fit(observation_examples)
             featurizer = FeatureUnion(rbf_samplers)
-            featurizer.fit(scaler.transform(training_examples))
+            featurizer.fit(scaler.transform(observation_examples))
 
         self.scaler = scaler
         self.featurizer = featurizer
@@ -47,7 +48,7 @@ class QLearnRBF:
             # eta0=0.01, power_t=0.25, warm_start=False, average=False
             model = SGDRegressor(eta0=lr, alpha=reg_term, learning_rate="constant")
             # Parameter initialization
-            model.partial_fit(self.transform([env.reset()]), [0])
+            model.partial_fit(self.transform([observation_examples[0]]), [0])
             self.models.append(model)
 
     def transform(self, observations):

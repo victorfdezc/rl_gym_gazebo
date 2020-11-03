@@ -34,11 +34,11 @@ if __name__ == '__main__':
                     ("rbf4", RBFSampler(gamma=0.1, n_components=500)),
                     ("rbf5", RBFSampler(gamma=5.0, n_components=500)),
                     ("rbf6", RBFSampler(gamma=2.0, n_components=500))]
-    training_examples = np.random.random((20000, 5))*4.0
+    observation_examples = np.random.random((20000, 5))*4.0
 
     # Initialises Q-Learning
     qlearn = qlearnRBF.QLearnRBF(env=env, epsilon=epsilon, lr=lr, gamma=gamma, 
-                rbf_samplers=rbf_samplers, training_examples=training_examples)
+                rbf_samplers=rbf_samplers, observation_examples=observation_examples)
 
     # Init Gym Monitor
     rospack = rospkg.RosPack()
