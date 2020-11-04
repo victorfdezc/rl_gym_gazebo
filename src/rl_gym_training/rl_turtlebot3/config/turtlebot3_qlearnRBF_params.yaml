@@ -4,7 +4,7 @@ turtlebot3_qlearnRBF:
     learning_rate: 0.01
     gamma: 0.99
     epsilon: 1.0
-    epsilon_discount: 0.99
+    epsilon_discount: 0.999
     nepisodes: 100000
 
     # Actions parameters:

@@ -158,5 +158,4 @@ class TurtleBot3Env(gazebo_robot_env.GazeboRobotEnv):
         self._cmd_vel_pub.publish(cmd_vel_value)
 
         time.sleep(wait_time/self.gazebo.rtf)
-        # TODO: make the waiting time a paremeter read from the yaml file and make that the sleep depends on rtf
     #------------------------------------------------------------------#

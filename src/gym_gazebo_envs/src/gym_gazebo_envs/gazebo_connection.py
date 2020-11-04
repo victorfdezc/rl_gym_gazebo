@@ -3,6 +3,7 @@
 import rospy
 import threading
 import time
+import numpy as np
 from std_srvs.srv import Empty
 from gazebo_msgs.msg import ODEPhysics
 from gazebo_msgs.srv import SetPhysicsProperties, SetPhysicsPropertiesRequest
@@ -16,7 +17,7 @@ This class will allow us to control the Gazebo simulations by using ROS services
 '''
 class GazeboConnection():
 
-    def __init__(self, reset_world_or_sim, max_retry = 20):
+    def __init__(self, reset_world_or_sim, max_retry = 20, mavg_rtf_nitems=20):
 
         # Store class attributes values:
         self.reset_world_or_sim = reset_world_or_sim
@@ -39,7 +40,8 @@ class GazeboConnection():
         self.pauseSim()
 
         # Execute a thread to compute the Real Time Factor
-        self.rtf = 1.0 # Real time
+        self.rtf = 1.0 # Real time (average)
+        self.rtf_list = [1.0]*mavg_rtf_nitems # To compute moving average
         rtf_thread = threading.Thread(target=self.compute_rtf)
         rtf_thread.start()
 
@@ -279,10 +281,10 @@ class GazeboConnection():
                 # Get current simulation time in seconds:
                 sim_time = rospy.get_rostime().secs + rospy.get_rostime().nsecs*1e-9
                 
-                # Wait approx 1 second on wall-clock (system clock or wall-time)
+                # Wait approx 0.2 second on wall-clock (system clock or wall-time)
                 t0 = time.time()
                 t=0.0
-                while t<1.0:
+                while t<0.2:
                     time.sleep(0.001)
                     # Only count real time when the simulation is not paused
                     if not self.sim_paused:
@@ -292,7 +294,9 @@ class GazeboConnection():
                         t0 = time.time()
 
                 if first:
-                    self.rtf = ((rospy.get_rostime().secs + rospy.get_rostime().nsecs*1e-9)-sim_time)/t
+                    self.rtf_list.pop(0)
+                    self.rtf_list.append(((rospy.get_rostime().secs + rospy.get_rostime().nsecs*1e-9)-sim_time)/t)
+                    self.rtf = np.mean(self.rtf_list)
                     pub.publish(self.rtf)
                 else:
                     first = True
