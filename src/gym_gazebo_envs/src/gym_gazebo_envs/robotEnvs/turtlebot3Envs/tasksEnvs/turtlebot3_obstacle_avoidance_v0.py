@@ -186,9 +186,9 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         if min_value<self.min_range:
             self.episode_done = True    
 
-        return self.episode_done
+        return self.episode_done, self.episode_success
 
-    def _compute_reward(self, observations, done): # TODO: check GoalEnv and robotics envs in gym repo
+    def _compute_reward(self, observations, done, success):
         '''
         This method is used to compute the reward to give to the agent. It can be based on
         the observations or on the fact that the episode has finished or not (both of them given
