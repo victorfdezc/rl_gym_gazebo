@@ -40,13 +40,17 @@ class GazeboRobotEnv(gym.Env):
         # However, in this initialization, the reset will not make anything because later, the turtlebot env checks the topics
         # by unpausing the simulation.
 
-        # Initialize episode variables: #TODO: check that these variables work fine!
+        # Initialize episode variables:
         self.episode_num = 0
         self.total_episode_reward = 0.0
         self.total_episode_steps = 0
+        self.average_step_time = 0.0
+        self.total_step_time = 0.0
+        self.ts = None
         self.episode_done = False
+        self.episode_success = False
         # And create a topic publisher to publish episode info:
-        self.episode_pub = rospy.Publisher('/episode_info', RLEpisodeInfo, queue_size=1)
+        self.episode_pub = rospy.Publisher('/episode_info', RLEpisodeInfo, queue_size=10)
 
         self.metadata = {'render.modes': ['human', 'sim', 'close']}
 
@@ -76,15 +80,22 @@ class GazeboRobotEnv(gym.Env):
         # because of performing the previous action:
         obs = self._get_obs()
         # Check if the episode has finished:
-        done = self._is_done(obs)
+        done, success = self._is_done(obs)
         # We compute the reward achieved because of arriving to a new state (this reward can also depend
         # on the fact that the episode has finished or not):
-        reward = self._compute_reward(obs, done)
+        reward = self._compute_reward(obs, done, success)
         # Add this new reward to the total reward of this epsiode:
         self.total_episode_reward += reward
 
         # Add a new step to the total episode steps:
         self.total_episode_steps += 1
+        # Compute total step time:
+        if self.ts == None: 
+            self.ts = time.time()
+        else:
+            t = time.time()
+            self.total_step_time += (t-self.ts)
+            self.ts = t           
 
         # This dictionary is used to debug. In this case we don't need it so we return an empty dict:
         info = {}
@@ -98,11 +109,10 @@ class GazeboRobotEnv(gym.Env):
         Returns:
             observation (object): the initial observation.
         '''
-
-        # TODO: check this method, I think it can be simplified so we don't need to call so many functions.
-        # TODO: aqui es donde deberia hacer lo de resetear los controladores a partir de esperar un tiempo a 
-        # que el robot vuelva a un estado inicial.
-
+        try:
+            self.average_step_time = self.total_step_time/(self.total_episode_steps-1)
+        except:
+            self.average_step_time = 0.0
         self._publish_episode_info_topic()
         self._update_env_variables()
         self._reset_sim()
@@ -198,11 +208,12 @@ class GazeboRobotEnv(gym.Env):
         '''
         Publish episode info to /episode_info topic.
         '''
-        reward_msg = RLEpisodeInfo()
-        reward_msg.episode_number = self.episode_num
-        reward_msg.episode_reward = self.total_episode_reward
-        reward_msg.total_episode_steps = self.total_episode_steps
-        self.episode_pub.publish(reward_msg)
+        msg = RLEpisodeInfo()
+        msg.episode_number = self.episode_num
+        msg.episode_reward = self.total_episode_reward
+        msg.total_episode_steps = self.total_episode_steps
+        msg.average_step_time = self.average_step_time
+        self.episode_pub.publish(msg)
 
     def _reset_sim(self):
         '''
@@ -235,8 +246,11 @@ class GazeboRobotEnv(gym.Env):
         '''
         # Set to false Done, because its calculated asyncronously
         self.episode_done = False
+        self.episode_success = False
         self.total_episode_reward = 0.0
         self.total_episode_steps = 0
+        self.total_step_time = 0.0
+        self.ts = None
         self.episode_num += 1
 
     #----------------------------------------------------#
@@ -289,25 +303,30 @@ class GazeboRobotEnv(gym.Env):
 
     def _is_done(self, observations):
         '''
-        Indicates whether or not the episode is done. The episode can finish in case the
-        robot has not reached its goal and it has failed (for example, if the robot has 
-        crashed) or in case it has reached the goal.
+        Indicates whether or not the episode is done. The episode can finish in case
+        the robot fails reaching its goal (e.g. the robot has crashed) or in case it 
+        has reached the goal (e.g. final pose).
 
         Args:
             observations (object): current observation of the robot
+
+        Returns:
+            done (bool): if the episode has finished or not
+            success (bool): set True if the robot has reached its goal
         '''
         raise NotImplementedError()
 
-    def _compute_reward(self, observations, done):
-        """Calculates the reward to give based on the observations given.
-
-        TODO: done? is_success? Aqui quizas deberia aniadir si ha conseguido el obejtivo o no,
-        o directamente paso y hacer un metodo aparte en el entorno de la tarea que calcule si
-        ha tenido exito o no.
+    def _compute_reward(self, observations, done, success):
+        '''
+        Calculates the reward to give to the robot.
 
         Args:
             observations (object): current observation of the robot
             done (bool): if the episode has finished or not
-        """
+            success (bool): True when the robot has reached its goal
+
+        Returns:
+            reward (float): reward to give
+        '''
         raise NotImplementedError()
     #------------------------------------------------------------------#
