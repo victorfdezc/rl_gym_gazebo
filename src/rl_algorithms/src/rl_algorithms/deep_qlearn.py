@@ -129,6 +129,7 @@ class DQN:
     '''
     Execute the model and get a prediction
     '''
+    # Make sure the input is a matrix
     X = np.atleast_2d(X)
     return self.session.run(self.prediction, feed_dict={self.X: X})
 
@@ -139,6 +140,7 @@ class DQN:
     if len(self.experience['s']) < self.min_experiences:
       return
 
+    # Get random samples from the experience buffer to create the mini-batch
     idx = np.random.choice(len(self.experience['s']), size=self.batch_size, replace=False)
     states = [self.experience['s'][i] for i in idx]
     actions = [self.experience['a'][i] for i in idx]
@@ -152,6 +154,7 @@ class DQN:
     #                 reward + gamma*max_a'(Q(s',a'))
     targets = [r + self.gamma*next_q if not done else r for r, next_q, done in zip(rewards, next_Q, dones)]
 
+    # Execute the optimizer to minimize the cost
     self.session.run(self.train_op, feed_dict={self.X: states, self.G: targets, self.actions: actions})
 
   def add_experience(self, s, a, r, s2, done):
