@@ -78,6 +78,7 @@ class QLearnRBF:
         '''
         Train the linear model
         '''
+        #TODO:targets = [r + self.gamma*next_q if not done else r for r, next_q, done in zip(rewards, next_Q, dones)] -> In this case we are considering that a terminal state has a return of 0. Check if this helps to improve preformance
         # Compute the estimation of the expected return
         G = next_reward + self.gamma * np.max(self.getQ(next_state))
         self.models[current_action].partial_fit(self.transform([current_state]), [G])
