@@ -104,10 +104,9 @@ if __name__ == '__main__':
             # Standarize the new observation:
             next_state = scaler(next_observation)
             
-            # Actualizamos el buffer de experiencia
+            # Update experience buffer
             model.add_experience(state, action, reward, next_state, done)
-            # Y entrenamos el modelo principal por medio de las predicciones 
-            # de la target network
+            # And train the model
             model.learn(target_network)
 
             state = next_state
