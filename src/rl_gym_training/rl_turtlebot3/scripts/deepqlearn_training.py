@@ -6,15 +6,14 @@ import numpy as np
 import time
 import rospy
 import rospkg
-from rl_algorithms import qlearnRBF
-from sklearn.kernel_approximation import RBFSampler
+import tensorflow as tf
+from rl_algorithms import deep_qlearn
 # Import the environment to register it
-from gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs import turtlebot3_reactive_path_planning-v0
+from gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs import turtlebot3_reactive_path_planning_v0
 
 class standarize:
   '''
-  Esta clase aplica a cada uno de los atributos de la instancia un proceso de
-  estandarización para que la media sea 0 y la varianza sea 1.
+  Standarize each one of the attributes to have zero mean and unit variance
   '''
   def __init__(self,data):
     self.n_attributes = np.shape(data)[1]
@@ -27,7 +26,7 @@ class standarize:
 
 if __name__ == '__main__':
     # Start ROS node
-    rospy.init_node('turtlebot3_obstacle_avoidance_qlearnRBF', anonymous=True)
+    rospy.init_node('turtlebot3_reactive_path_planning_deepqlearn', anonymous=True)
 
     # Create the Gym environment
     env = gym.make('TurtleBot3ReactivePathPlanning-v0')
@@ -42,40 +41,39 @@ if __name__ == '__main__':
     nepisodes = rospy.get_param("/turtlebot3_rpp_dql/nepisodes")
     angle_ranges = rospy.get_param("/turtlebot3_rpp_dql/angle_ranges")
     max_distance = rospy.get_param("/turtlebot3_rpp_dql/max_distance")
+    max_distance_error = rospy.get_param("/turtlebot3_rpp_dql/max_distance_error")
 
     # Train the standarizer:
     scaler_ex1 = np.random.random((20000, len(angle_ranges)))*max_distance
-    scaler_ex2 = np.random.random((20000, 1))*5 #TODO: max error distance to final pose could be 5 meters?
-    scaler_ex3 = np.random.random((20000, 1))*2*np.pi - np.pi #TODO: max error in direction to final pose could be PI rad?
-    import pdb; pdb.set_trace()
+    scaler_ex2 = np.random.random((20000, 1))*max_distance_error
+    scaler_ex3 = np.random.random((20000, 1))*2*np.pi - np.pi
+    scaler_ex = np.concatenate((scaler_ex1,scaler_ex2,scaler_ex3),axis=1)
     scaler = standarize(scaler_ex)
 
-    # Tamaño de entrada del modelo
+    # Input size
     input_size = len(env.observation_space.sample())
-    # Tamaño de salida del modelo
+    # Output size
     output_size = env.action_space.n
-    # Capas ocultas del modelo y número de neuronas
-    hidden_layer_sizes = [400,400]
-    copy_period = 50 # Tasa de actualización de target network
-    # Creamos tanto el modelo principal como la target network:
-    model = DQN(input_size, output_size, hidden_layer_sizes, epsilon=1.0, lr=1e-3, 
+    # Hidden layers
+    hidden_layer_sizes = [800,800,400]
+    # Update rate target network
+    copy_period = 50
+    # Create main DQN and target DQN
+    model = deep_qlearn.DQN(input_size, output_size, hidden_layer_sizes, epsilon=1.0, lr=1e-3, 
                 gamma=0.99, min_experiences=100, max_experiences=7500,batch_size=32)
-    target_network = DQN(input_size, output_size, hidden_layer_sizes, epsilon=1.0, lr=1e-3, 
+    target_network = deep_qlearn.DQN(input_size, output_size, hidden_layer_sizes, epsilon=1.0, lr=1e-3, 
                         gamma=0.99, min_experiences=100, max_experiences=7500, batch_size=32)
 
     init = tf.compat.v1.global_variables_initializer()
-    # Creamos una sesión
     session = tf.compat.v1.InteractiveSession()
-    # Inicializamos todas las variables de los grafos
     session.run(init)
-    # Definimos la sesión a usar en ambos modelos
     model.set_session(session)
     target_network.set_session(session)
 
     # Init Gym Monitor
     rospack = rospkg.RosPack()
     pkg_path = rospack.get_path('rl_turtlebot3')
-    outdir = pkg_path + '/training_results_qlearnRBF'
+    outdir = pkg_path + '/training_results_deepqlearn'
     env = wrappers.Monitor(env, outdir, force=True)
 
     start_time = time.time()
@@ -89,32 +87,41 @@ if __name__ == '__main__':
         #     env.render("close")
 
         # Epsilon decay
-        if qlearn.epsilon > 0.05:
-            qlearn.epsilon *= epsilon_discount
+        if model.epsilon > 0.05:
+            model.epsilon *= epsilon_discount
 
         # Initialize the environment and get first state of the robot
-        state = env.reset()
+        observation = env.reset()
+        state = scaler(observation)
 
         done = False
         episode_reward = 0
         episode_steps = 0
         while not done:
             # Choose an action based on the state
-            action = qlearn.chooseAction(state)
-            # Execute the action in the environment
-            next_state, reward, done, info = env.step(action)
+            action = model.chooseAction(state)
+            next_observation, reward, done, info = env.step(action)
+            # Standarize the new observation:
+            next_state = scaler(next_observation)
+            
+            # Actualizamos el buffer de experiencia
+            model.add_experience(state, action, reward, next_state, done)
+            # Y entrenamos el modelo principal por medio de las predicciones 
+            # de la target network
+            model.learn(target_network)
 
-            # Make the algorithm learn based on the results
-            qlearn.learn(state, action, reward, next_state)
             state = next_state
 
             episode_reward += reward
             episode_steps += 1
 
+            if episode_steps % copy_period == 0:
+                target_network.copy_from(model)
+
         m, s = divmod(int(time.time() - start_time), 60)
         h, m = divmod(m, 60)
         rospy.loginfo(("Episode: " + str(n + 1) + " - Reward: " + str(episode_reward) + " - Steps: " + str(episode_steps) 
-                        + " - Epsilon: " + str(round(qlearn.epsilon, 2)) + " - Time: %d:%02d:%02d" % (h, m, s)))
+                        + " - Epsilon: " + str(round(model.epsilon, 2)) + " - Time: %d:%02d:%02d" % (h, m, s)))
 
     # Once the training is finished, we close the environment
     env.close()

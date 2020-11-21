@@ -94,7 +94,7 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         # unbounded). Specifically, a Box represents the Cartesian product of n closed intervals. Each 
         # interval has the form of one of [a, b], (-oo, b], [a, oo), or (-oo, oo). In this case we will
         # have 5 closed intervals of the form [0,max_distance]
-        num_laser_readings = 5 # Number of laser ranges
+        num_laser_readings = len(self.angle_ranges) # Number of laser ranges
         high = numpy.full((num_laser_readings), self.max_distance) 
         low = numpy.full((num_laser_readings), 0.0)
         self.observation_space = spaces.Box(low, high, dtype=numpy.float32)

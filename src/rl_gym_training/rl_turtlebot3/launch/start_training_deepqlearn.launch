@@ -1,0 +1,6 @@
+<launch>
+    <!-- Load QLearn parameters -->
+    <rosparam command="load" file="$(find rl_turtlebot3)/config/turtlebot3_deepql_rpp.yaml" />
+    <!-- Run the training script -->
+    <node pkg="rl_turtlebot3" name="turtlebot3_deepqlearn" type="deepqlearn_training.py" output="screen"/>
+</launch>

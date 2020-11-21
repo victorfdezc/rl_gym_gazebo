@@ -22,7 +22,7 @@ To register an environment, we have the following arguments:
 '''
 register(
         id = 'TurtleBot3ReactivePathPlanning-v0',
-        entry_point = 'gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs.turtlebot3_reactive_path_planning-v0:TurtleBot3ReactivePathPlanning',
+        entry_point = 'gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs.turtlebot3_reactive_path_planning_v0:TurtleBot3ReactivePathPlanning',
         max_episode_steps = 1000
     )
 
@@ -80,7 +80,7 @@ class TurtleBot3ReactivePathPlanning(turtlebot3_env.TurtleBot3Env):
         self.init_linear_turn_speed = rospy.get_param('/turtlebot3_rpp_dql/init_linear_turn_speed')
         self.initial_poses = rospy.get_param("/turtlebot3_rpp_dql/initial_poses")
 
-        # Final states:
+        # Target position:
         self.area_radius = rospy.get_param('/turtlebot3_rpp_dql/area_radius')
         self.area_center = rospy.get_param('/turtlebot3_rpp_dql/area_center')
         self.success_distance = rospy.get_param('/turtlebot3_rpp_dql/success_distance')
@@ -97,14 +97,15 @@ class TurtleBot3ReactivePathPlanning(turtlebot3_env.TurtleBot3Env):
         # must be a tuple:
         self.reward_range = (-np.inf, np.inf)
 
-        num_laser_readings = len(self.angle_ranges) # Number of laser ranges # TODO: check this in the others environments (RBF and tabular QLEARNING)
+        num_laser_readings = len(self.angle_ranges) # Number of laser ranges
         high1 = np.full((num_laser_readings), self.max_distance) 
         low1 = np.full((num_laser_readings), 0.0)
         high2 = self.max_distance_error
         low2 = 0.0
         high3 = np.pi
         low3 = -np.pi
-        import pdb;pdb.set_trace()
+        high = np.append(high1,[high2,high3])
+        low = np.append(low1,[low2,low3])
         self.observation_space = spaces.Box(low, high, dtype=np.float32)
 
 
@@ -180,7 +181,7 @@ class TurtleBot3ReactivePathPlanning(turtlebot3_env.TurtleBot3Env):
         # Now we compute the error in distance and angle between the current
         # position of the robot and the final desired position.
         # Get the distance to final pose:
-        self.distance_final_pos = np.sqrt((self.final_pos[0]-self.odom.pose.pose.position.x)^2 + (self.final_pos[1]-self.odom.pose.pose.position.y)^2)
+        self.distance_final_pos = np.sqrt(np.square(self.final_pos[0]-self.odom.pose.pose.position.x) + np.square(self.final_pos[1]-self.odom.pose.pose.position.y))
         self.direction_error = np.arctan2((self.final_pos[1]-self.odom.pose.pose.position.y),(self.final_pos[0]-self.odom.pose.pose.position.x))
 
         obs = np.append(discretized_observations,[self.distance_final_pos,self.direction_error])
