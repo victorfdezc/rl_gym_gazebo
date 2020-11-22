@@ -3,10 +3,12 @@
 import rospy
 import numpy as np
 import random
+import rospkg
 from gym import spaces
 from gym_gazebo_envs.robotEnvs.turtlebot3Envs import turtlebot3_env
 from gym.envs.registration import register
 from geometry_msgs.msg import Vector3
+from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 '''
 Register an environment by ID. IDs remain stable over time and are guaranteed to resolve 
@@ -108,6 +110,12 @@ class TurtleBot3ReactivePathPlanning(turtlebot3_env.TurtleBot3Env):
         low = np.append(low1,[low2,low3])
         self.observation_space = spaces.Box(low, high, dtype=np.float32)
 
+        # Spawn the final position marker in the simulation:
+        rospack = rospkg.RosPack()
+        pkg_path = rospack.get_path('gym_gazebo_envs')
+        model_path = pkg_path + '/models/cylinder.sdf'
+        self.gazebo.spawnSDFmodel("final_pos_mark", model_path, 0, 0, 0, 0, 0, 0, 1, frame="world")
+
 
     #--------------------- GazeboRobotEnv Methods ---------------------#
     def _set_initial_state(self):
@@ -127,6 +135,7 @@ class TurtleBot3ReactivePathPlanning(turtlebot3_env.TurtleBot3Env):
         d = np.array((np.cos(q),np.sin(q)))*r
         self.final_pos = (self.area_center[0]+d[0],self.area_center[1]+d[1])
         rospy.loginfo("Goal pos: " + str(self.final_pos))
+        self.gazebo.setModelState("final_pos_mark", self.final_pos[0], self.final_pos[1], 0,0,0,0,1)
 
         return True
 
@@ -182,9 +191,24 @@ class TurtleBot3ReactivePathPlanning(turtlebot3_env.TurtleBot3Env):
         # position of the robot and the final desired position.
         # Get the distance to final pose:
         self.distance_final_pos = np.sqrt(np.square(self.final_pos[0]-self.odom.pose.pose.position.x) + np.square(self.final_pos[1]-self.odom.pose.pose.position.y))
-        self.direction_error = np.arctan2((self.final_pos[1]-self.odom.pose.pose.position.y),(self.final_pos[0]-self.odom.pose.pose.position.x))
+        if self.distance_final_pos > self.max_distance_error: self.distance_final_pos = self.max_distance_error
 
-        obs = np.append(discretized_observations,[self.distance_final_pos,self.direction_error])
+        # Now get the error between the current orientation of the robot and the desired 
+        # orientation towards the final pose.
+        # First compute the orientation needed to head to goal knowing our current position.
+        # As always, the error is the reference minus the current pose. In this case we use
+        # atan2 to get the lowest angle:
+        desired_orientation = np.arctan2((self.final_pos[1]-self.odom.pose.pose.position.y),(self.final_pos[0]-self.odom.pose.pose.position.x))
+        # Error = reference - current
+        self.orientation_error = desired_orientation - self._get_orientation(self.odom)
+        if self.orientation_error > np.pi:
+            self.orientation_error -= 2*np.pi
+        elif self.orientation_error < -np.pi:
+            self.orientation_error += 2*np.pi
+
+        obs = np.append(discretized_observations,[self.distance_final_pos,self.orientation_error])
+
+        # rospy.loginfo("   Error: " + str((self.distance_final_pos,self.orientation_error*360/(2*np.pi))))
 
         return obs
         
@@ -211,6 +235,7 @@ class TurtleBot3ReactivePathPlanning(turtlebot3_env.TurtleBot3Env):
         elif self.distance_final_pos < self.success_distance:
             self.episode_done = True
             self.episode_success = True
+            rospy.loginfo("\n     Success! Error: " + str((self.distance_final_pos,self.orientation_error*360/(2*np.pi))))
         else:
             self.episode_done = False
             self.episode_success = False            
@@ -232,7 +257,7 @@ class TurtleBot3ReactivePathPlanning(turtlebot3_env.TurtleBot3Env):
         if not done:
             # In the case the episode has not finished, the reward will depend on the distance
             # to obstacles and distance to final pose:
-            reward = self.Wo * (1/self.min_obs_distance) + self.Wfp * (1/self.distance_final_pos)
+            reward = self.Wo * (1/self.min_obs_distance) + self.Wfp * (self.distance_final_pos)
         elif done and success:
             reward = self.success_reward
         elif done and not success:
@@ -271,4 +296,10 @@ class TurtleBot3ReactivePathPlanning(turtlebot3_env.TurtleBot3Env):
         # rospy.loginfo("Discretized obs " + str(self.discretized_ranges))
 
         return self.discretized_ranges
+
+    def _get_orientation(self, msg):
+        orientation_q = msg.pose.pose.orientation
+        orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
+        (roll, pitch, yaw) = euler_from_quaternion (orientation_list)
+        return yaw
     #------------------------------------------------------------------#

@@ -1,0 +1,34 @@
+<?xml version='1.0'?>
+  <sdf version='1.4'>
+    <model name="cylinder_mark">
+    <!-- If static set to true, we could not change model position -->
+    <!-- <static>true</static> -->
+      <link name="cylinder">
+        <gravity>0</gravity>
+        <pose>0.0 0.0 0.0</pose>
+        <!-- Collision commented to avoid collisions with other models-->
+        <!-- <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>.1</radius>
+              <length>.05</length>
+            </cylinder>
+          </geometry>
+        </collision> -->
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>.001</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0 0 0 </ambient>
+            <diffuse>0 0 0.75 1</diffuse>
+            <specular>0 0 0 0</specular>
+            <emissive>0 0 0 0</emissive>
+          </material>
+        </visual>
+      </link>
+  </model>
+</sdf>

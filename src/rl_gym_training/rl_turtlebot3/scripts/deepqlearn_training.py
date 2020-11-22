@@ -54,15 +54,16 @@ if __name__ == '__main__':
     input_size = len(env.observation_space.sample())
     # Output size
     output_size = env.action_space.n
+    # TODO: put hidden layers, copy period...etc as parameters in .yaml
     # Hidden layers
     hidden_layer_sizes = [800,800,400]
     # Update rate target network
-    copy_period = 50
+    copy_period = 100
     # Create main DQN and target DQN
     model = deep_qlearn.DQN(input_size, output_size, hidden_layer_sizes, epsilon=1.0, lr=1e-3, 
-                gamma=0.99, min_experiences=100, max_experiences=7500,batch_size=32)
+                gamma=0.99, min_experiences=100, max_experiences=5000,batch_size=16)
     target_network = deep_qlearn.DQN(input_size, output_size, hidden_layer_sizes, epsilon=1.0, lr=1e-3, 
-                        gamma=0.99, min_experiences=100, max_experiences=7500, batch_size=32)
+                        gamma=0.99, min_experiences=100, max_experiences=5000, batch_size=16)
 
     init = tf.compat.v1.global_variables_initializer()
     session = tf.compat.v1.InteractiveSession()

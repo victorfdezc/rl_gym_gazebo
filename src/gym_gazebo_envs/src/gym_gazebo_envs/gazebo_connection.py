@@ -8,8 +8,8 @@ from std_srvs.srv import Empty
 from gazebo_msgs.msg import ODEPhysics
 from gazebo_msgs.srv import SetPhysicsProperties, SetPhysicsPropertiesRequest
 from std_msgs.msg import Float64, Float32
-from geometry_msgs.msg import Vector3
-from gazebo_msgs.srv import SetModelState
+from geometry_msgs.msg import Vector3, Pose
+from gazebo_msgs.srv import SetModelState, SpawnModel
 from gazebo_msgs.msg import ModelState
 
 '''
@@ -30,6 +30,7 @@ class GazeboConnection():
         self.reset_world = rospy.ServiceProxy('/gazebo/reset_world', Empty) # service to reset the model poses
         self.set_model_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
         self.set_physics = rospy.ServiceProxy('/gazebo/set_physics_properties', SetPhysicsProperties)
+        self.spawn_sdf_model = rospy.ServiceProxy('gazebo/spawn_sdf_model', SpawnModel)
         
         # Initialize physics parameters for Gazebo simulation:
         self.init_physics_parameters()
@@ -257,6 +258,44 @@ class GazeboConnection():
                     rospy.logerr("/gazebo/set_model_state service call failed")
             else:
                 error_message = "Maximum retries done"+str(self._max_retry)+", please check Gazebo set_model_state service"
+                rospy.logerr(error_message)
+                assert False, error_message
+
+    def spawnSDFmodel(self, model_name, model_path, x, y, z, tx, ty, tz, tw, frame="world"):
+        '''
+        This method is used to spawn any model in the simulation.
+        '''
+        model_name = model_name
+        model_xml = open(model_path, 'r').read()
+        robot_namespace = ""
+
+        initial_pose = Pose()
+        initial_pose.position.x = x
+        initial_pose.position.y = y
+        initial_pose.position.z = z
+        initial_pose.orientation.x = tx
+        initial_pose.orientation.y = ty
+        initial_pose.orientation.z = tz
+        initial_pose.orientation.w = tw
+
+        reference_frame = frame
+
+        # Block the code until the service is available
+        rospy.wait_for_service('/gazebo/spawn_sdf_model')
+
+        model_spawned_done = False
+        counter = 0
+        # We try to change the model state until we reach the maximum tries or until the service call have succeded
+        while not model_spawned_done and not rospy.is_shutdown():
+            if counter < self._max_retry:
+                try:
+                    self.spawn_sdf_model(model_name, model_xml, robot_namespace, initial_pose, reference_frame)
+                    model_spawned_done = True
+                except rospy.ServiceException as e:
+                    counter += 1
+                    rospy.logerr("/gazebo/spawn_sdf_model service call failed")
+            else:
+                error_message = "Maximum retries done"+str(self._max_retry)+", please check Gazebo spawn_sdf_model service"
                 rospy.logerr(error_message)
                 assert False, error_message
 
