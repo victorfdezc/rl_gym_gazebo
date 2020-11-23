@@ -130,11 +130,10 @@ class TurtleBot3ReactivePathPlanning(turtlebot3_env.TurtleBot3Env):
         self.move_base( self.init_linear_forward_speed, self.init_linear_turn_speed, wait_time=self.reset_time)
 
         # Initialize a random final position to set the goal for the path planning algorithm:
-        r = np.random.random()*self.area_radius
+        r = np.random.random()*self.area_radius + 0.2
         q = np.random.random()*2*np.pi
         d = np.array((np.cos(q),np.sin(q)))*r
         self.final_pos = (self.area_center[0]+d[0],self.area_center[1]+d[1])
-        rospy.loginfo("Goal pos: " + str(self.final_pos))
         self.gazebo.setModelState("final_pos_mark", self.final_pos[0], self.final_pos[1], 0,0,0,0,1)
 
         return True
@@ -235,7 +234,7 @@ class TurtleBot3ReactivePathPlanning(turtlebot3_env.TurtleBot3Env):
         elif self.distance_final_pos < self.success_distance:
             self.episode_done = True
             self.episode_success = True
-            rospy.loginfo("\n     Success! Error: " + str((self.distance_final_pos,self.orientation_error*360/(2*np.pi))))
+            rospy.loginfo("     Success! Error: " + str((self.distance_final_pos,self.orientation_error*360/(2*np.pi))))
         else:
             self.episode_done = False
             self.episode_success = False            
