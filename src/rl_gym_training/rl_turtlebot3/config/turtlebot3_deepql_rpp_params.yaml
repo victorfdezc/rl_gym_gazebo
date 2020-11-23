@@ -1,11 +1,12 @@
 turtlebot3_rpp_dql:
     
     # Q-Learning parameters:
-    learning_rate: 0.01
+    learning_rate: 0.0001
     gamma: 0.99
     epsilon: 1.0
     epsilon_discount: 0.999
     nepisodes: 100000
+    load_model: 1 # Wether or not load a saved model, decrease epsilon if True
 
     # Actions parameters:
     linear_forward_speed: 0.3 # Speed for ging fowards

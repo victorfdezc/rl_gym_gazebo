@@ -31,6 +31,12 @@ if __name__ == '__main__':
     # Create the Gym environment
     env = gym.make('TurtleBot3ReactivePathPlanning-v0')
 
+    # Init Gym Monitor
+    rospack = rospkg.RosPack()
+    pkg_path = rospack.get_path('rl_turtlebot3')
+    outdir = pkg_path + '/training_results_deepqlearn'
+    env = wrappers.Monitor(env, outdir, force=True)
+
     # Loads parameters from the ROS param server. Parameters are stored in a 
     # .yaml file inside the /config directory. They are loaded at runtime by 
     # the launch file:
@@ -42,6 +48,7 @@ if __name__ == '__main__':
     angle_ranges = rospy.get_param("/turtlebot3_rpp_dql/angle_ranges")
     max_distance = rospy.get_param("/turtlebot3_rpp_dql/max_distance")
     max_distance_error = rospy.get_param("/turtlebot3_rpp_dql/max_distance_error")
+    load_model = rospy.get_param("/turtlebot3_rpp_dql/load_model")
 
     # Train the standarizer:
     scaler_ex1 = np.random.random((20000, len(angle_ranges)))*max_distance
@@ -56,26 +63,30 @@ if __name__ == '__main__':
     output_size = env.action_space.n
     # TODO: put hidden layers, copy period...etc as parameters in .yaml
     # Hidden layers
-    hidden_layer_sizes = [800,800,400]
+    hidden_layer_sizes = [1500,1500,1000]
     # Update rate target network
-    copy_period = 100
+    copy_period = 50
     # Create main DQN and target DQN
-    model = deep_qlearn.DQN(input_size, output_size, hidden_layer_sizes, epsilon=1.0, lr=1e-3, 
-                gamma=0.99, min_experiences=100, max_experiences=5000,batch_size=16)
-    target_network = deep_qlearn.DQN(input_size, output_size, hidden_layer_sizes, epsilon=1.0, lr=1e-3, 
-                        gamma=0.99, min_experiences=100, max_experiences=5000, batch_size=16)
+    model = deep_qlearn.DQN(input_size, output_size, hidden_layer_sizes, epsilon=epsilon, lr=lr, 
+                gamma=gamma, min_experiences=100, max_experiences=7500,batch_size=32)
+    target_network = deep_qlearn.DQN(input_size, output_size, hidden_layer_sizes, epsilon=epsilon, lr=lr,
+                        gamma=gamma, min_experiences=100, max_experiences=7500, batch_size=32)
 
-    init = tf.compat.v1.global_variables_initializer()
-    session = tf.compat.v1.InteractiveSession()
-    session.run(init)
+    # Create session and saver object
+    session = tf.compat.v1.Session()
+    saver = tf.compat.v1.train.Saver()
+
+    if load_model:
+      saver.restore(session, outdir+"/model.ckpt")
+      rospy.loginfo("Model loaded!")
+    else:
+      init = tf.compat.v1.global_variables_initializer()
+      session.run(init)
+      # Avoid changing the graph (it could imply OOM error)
+      tf.compat.v1.get_default_graph().finalize()
+
     model.set_session(session)
     target_network.set_session(session)
-
-    # Init Gym Monitor
-    rospack = rospkg.RosPack()
-    pkg_path = rospack.get_path('rl_turtlebot3')
-    outdir = pkg_path + '/training_results_deepqlearn'
-    env = wrappers.Monitor(env, outdir, force=True)
 
     start_time = time.time()
     # Run the number of episodes specified
@@ -90,6 +101,10 @@ if __name__ == '__main__':
         # Epsilon decay
         if model.epsilon > 0.05:
             model.epsilon *= epsilon_discount
+
+        if n%100==0: 
+          # Save the variables to disk.
+          save_path = saver.save(session, outdir+"/model.ckpt")
 
         # Initialize the environment and get first state of the robot
         observation = env.reset()
