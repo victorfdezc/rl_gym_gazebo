@@ -49,6 +49,11 @@ if __name__ == '__main__':
     max_distance = rospy.get_param("/turtlebot3_rpp_dql/max_distance")
     max_distance_error = rospy.get_param("/turtlebot3_rpp_dql/max_distance_error")
     load_model = rospy.get_param("/turtlebot3_rpp_dql/load_model")
+    hidden_layer_sizes = rospy.get_param("/turtlebot3_rpp_dql/hidden_layer_sizes")
+    copy_period = rospy.get_param("/turtlebot3_rpp_dql/copy_period")
+    min_experiences = rospy.get_param("/turtlebot3_rpp_dql/min_experiences")
+    max_experiences = rospy.get_param("/turtlebot3_rpp_dql/max_experiences")
+    batch_size = rospy.get_param("/turtlebot3_rpp_dql/batch_size")
 
     # Train the standarizer:
     scaler_ex1 = np.random.random((20000, len(angle_ranges)))*max_distance
@@ -61,16 +66,12 @@ if __name__ == '__main__':
     input_size = len(env.observation_space.sample())
     # Output size
     output_size = env.action_space.n
-    # TODO: put hidden layers, copy period...etc as parameters in .yaml
-    # Hidden layers
-    hidden_layer_sizes = [1500,1500,1000]
-    # Update rate target network
-    copy_period = 50
+
     # Create main DQN and target DQN
     model = deep_qlearn.DQN(input_size, output_size, hidden_layer_sizes, epsilon=epsilon, lr=lr, 
-                gamma=gamma, min_experiences=100, max_experiences=7500,batch_size=32)
+                gamma=gamma, min_experiences=min_experiences, max_experiences=max_experiences,batch_size=batch_size)
     target_network = deep_qlearn.DQN(input_size, output_size, hidden_layer_sizes, epsilon=epsilon, lr=lr,
-                        gamma=gamma, min_experiences=100, max_experiences=7500, batch_size=32)
+                        gamma=gamma, min_experiences=min_experiences, max_experiences=max_experiences, batch_size=batch_size)
 
     # Create session and saver object
     session = tf.compat.v1.Session()

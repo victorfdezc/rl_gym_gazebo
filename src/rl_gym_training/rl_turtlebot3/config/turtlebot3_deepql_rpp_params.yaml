@@ -6,6 +6,13 @@ turtlebot3_rpp_dql:
     epsilon: 1.0
     epsilon_discount: 0.999
     nepisodes: 100000
+
+    # Model parameters:
+    hidden_layer_sizes: [1500,1500,1000] # Hidden layers
+    batch_size: 32
+    min_experiences: 100 # Min samples experience buffer
+    max_experiences: 7500 # Max samples experience buffer
+    copy_period: 50 # Update rate target network
     load_model: 1 # Wether or not load a saved model, decrease epsilon if True
 
     # Actions parameters:
