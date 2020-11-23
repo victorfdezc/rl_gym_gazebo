@@ -106,6 +106,13 @@ class DQN:
     # Experience replay
     self.experience = {'s': [], 'a': [], 'r': [], 's2': [], 'done': []}
 
+    # Create placeholder for parameters assignment (target network)
+    self.assigned_value = tf.compat.v1.placeholder(tf.float32,shape=(None))
+    # Store assign ops to run later
+    self.assign_ops = []
+    for p in self.params:
+      self.assign_ops.append(p.assign(self.assigned_value))
+
   def set_session(self, session):
     '''
     Set TF session
@@ -116,14 +123,13 @@ class DQN:
     '''
     Copy the values of the params of the given model to our network
     '''
-    ops = []
-    my_params = self.params
+    # Get params from the other model (main model)
     main_params = main_model.params
-    for p, q in zip(my_params, main_params):
-      actual = self.session.run(q)
-      op = p.assign(actual)
-      ops.append(op)
-    self.session.run(ops)
+    for c, v in enumerate(main_params):
+      # Get the value of the main model parameters and assign it
+      # to our parameters
+      value = self.session.run(v)
+      self.session.run(self.assign_ops[c], feed_dict={self.assigned_value: value})
 
   def getQ(self, X):
     '''
