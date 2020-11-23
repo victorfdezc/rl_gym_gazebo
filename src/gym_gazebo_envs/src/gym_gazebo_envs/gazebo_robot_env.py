@@ -112,7 +112,7 @@ class GazeboRobotEnv(gym.Env):
         try:
             self.average_step_time = self.total_step_time/(self.total_episode_steps-1)
         except:
-            self.average_step_time = 0.0
+            pass
         self._publish_episode_info_topic()
         self._update_env_variables()
         self._reset_sim()
