@@ -1,5 +1,4 @@
 build/
 devel/
 *.pyc
-*.json
 .catkin_workspace
