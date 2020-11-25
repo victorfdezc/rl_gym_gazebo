@@ -207,6 +207,7 @@ class TurtleBot3ReactivePathPlanning(turtlebot3_env.TurtleBot3Env):
 
         obs = np.append(discretized_observations,[self.distance_final_pos,self.orientation_error])
 
+        # rospy.loginfo("   Obs: " + str(obs))
         # rospy.loginfo("   Error: " + str((self.distance_final_pos,self.orientation_error*360/(2*np.pi))))
 
         return obs

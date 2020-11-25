@@ -56,10 +56,7 @@ if __name__ == '__main__':
     batch_size = rospy.get_param("/turtlebot3_rpp_dql/batch_size")
 
     # Train the standarizer:
-    scaler_ex1 = np.random.random((20000, len(angle_ranges)))*max_distance
-    scaler_ex2 = np.random.random((20000, 1))*max_distance_error
-    scaler_ex3 = np.random.random((20000, 1))*2*np.pi - np.pi
-    scaler_ex = np.concatenate((scaler_ex1,scaler_ex2,scaler_ex3),axis=1)
+    scaler_ex = np.array([env.observation_space.sample() for x in range(20000)])
     scaler = standarize(scaler_ex)
 
     # Input size
@@ -79,8 +76,9 @@ if __name__ == '__main__':
 
     if load_model:
       saver.restore(session, outdir+"/model.ckpt")
-      rospy.loginfo("Model loaded!")
+      rospy.logwarn("Model loaded!")
     else:
+      rospy.logwarn("Initializing new model!")
       init = tf.compat.v1.global_variables_initializer()
       session.run(init)
       # Avoid changing the graph (it could imply OOM error)
@@ -103,7 +101,7 @@ if __name__ == '__main__':
         if model.epsilon > 0.05:
             model.epsilon *= epsilon_discount
 
-        if n%100==0: 
+        if n%50==0: 
           # Save the variables to disk.
           save_path = saver.save(session, outdir+"/model.ckpt")
 
@@ -114,6 +112,7 @@ if __name__ == '__main__':
         done = False
         episode_reward = 0
         episode_steps = 0
+        episode_error = 0
         while not done:
             # Choose an action based on the state
             action = model.chooseAction(state)
@@ -124,12 +123,13 @@ if __name__ == '__main__':
             # Update experience buffer
             model.add_experience(state, action, reward, next_state, done)
             # And train the model
-            model.learn(target_network)
+            error = model.learn(target_network)
 
             state = next_state
 
             episode_reward += reward
             episode_steps += 1
+            episode_error += error
 
             if episode_steps % copy_period == 0:
                 target_network.copy_from(model)
@@ -137,7 +137,7 @@ if __name__ == '__main__':
         m, s = divmod(int(time.time() - start_time), 60)
         h, m = divmod(m, 60)
         rospy.loginfo(("Episode: " + str(n + 1) + " - Reward: " + str(episode_reward) + " - Steps: " + str(episode_steps) 
-                        + " - Epsilon: " + str(round(model.epsilon, 2)) + " - Time: %d:%02d:%02d" % (h, m, s)))
+                        + " - Epsilon: " + str(round(model.epsilon, 2)) + " - Error: " + str(round(episode_error/episode_steps, 2)) + " - Time: %d:%02d:%02d" % (h, m, s)))
 
     # Once the training is finished, we close the environment
     env.close()

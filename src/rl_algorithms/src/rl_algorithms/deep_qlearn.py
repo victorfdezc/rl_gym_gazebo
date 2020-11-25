@@ -100,8 +100,8 @@ class DQN:
     # Select only the outputs corresponding to the executed actions
     selected_action_values = tf.math.reduce_sum(Y_hat * tf.one_hot(self.actions, output_size), axis=1)
     # And compute cost
-    cost = tf.math.reduce_sum(tf.square(self.G - selected_action_values))
-    self.train_op = tf.compat.v1.train.AdamOptimizer(lr).minimize(cost)
+    self.cost = tf.math.reduce_sum(tf.square(self.G - selected_action_values))
+    self.train_op = tf.compat.v1.train.AdamOptimizer(lr).minimize(self.cost)
 
     # Experience replay
     self.experience = {'s': [], 'a': [], 'r': [], 's2': [], 'done': []}
@@ -144,7 +144,7 @@ class DQN:
     Train the model given the target network and the experience buffer
     '''
     if len(self.experience['s']) < self.min_experiences:
-      return
+      return 0
 
     # Get random samples from the experience buffer to create the mini-batch
     idx = np.random.choice(len(self.experience['s']), size=self.batch_size, replace=False)
@@ -161,7 +161,9 @@ class DQN:
     targets = [r + self.gamma*next_q if not done else r for r, next_q, done in zip(rewards, next_Q, dones)]
 
     # Execute the optimizer to minimize the cost
-    self.session.run(self.train_op, feed_dict={self.X: states, self.G: targets, self.actions: actions})
+    error, _ = self.session.run([self.cost, self.train_op], feed_dict={self.X: states, self.G: targets, self.actions: actions})
+
+    return error
 
   def add_experience(self, s, a, r, s2, done):
     '''
