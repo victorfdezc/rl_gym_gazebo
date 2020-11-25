@@ -1,0 +1,50 @@
+turtlebot3_rpp_dql:
+    
+    # Q-Learning parameters:
+    learning_rate: 0.001
+    gamma: 0.99
+    epsilon: 1.0
+    epsilon_discount: 0.999
+    nepisodes: 100000
+
+    # Model parameters:
+    hidden_layer_sizes: [2000,2000] # Hidden layers
+    batch_size: 64
+    min_experiences: 100 # Min samples experience buffer
+    max_experiences: 15000 # Max samples experience buffer
+    copy_period: 50 # Update rate target network
+    load_model: 0 # Wether or not load a saved model, decrease epsilon if True
+
+    # Actions parameters:
+    linear_forward_speed: 0.3 # Speed for ging fowards
+    linear_turn_speed: 0.01 # Lienar speed when turning
+    angular_speed: 0.3 # Angular speed when turning Left or Right
+
+    step_time: 0.2 # Number of seconds (in real time) a step takes, that is, the time we wait until we can perform another action
+    reset_time: 0.5 # Number of seconds (in real time) we wait until the robot reaches its final state (in reset phases)
+
+    # Observation parameters:
+    max_distance: 2.5 # Maximum distance in meters we can measure
+    angle_ranges: [[-108,-90],[-90,-72],[-72,-54],[-54,-36],[-36,-18],[-18,0],
+                   [0,18],[18,36],[36,54],[54,72],[72,90],[90,108]] # Laser scan angle intervals taken into account for each observation value
+    min_range: 0.15 # Minimum meters below wich we consider we have crashed
+    max_distance_error: 2.5 # Maximum distance error from final position we can measure
+
+    # Rewards:
+    collision_reward: -300 # Reward when crashing
+    success_reward: 1000 # Reward when arriving to final position
+    # Reward equation: R = Wo * (1/min_obs_distance) + Wfp * (distance_final_pos)
+    obstacle_weight: 0.0 # Weight to compute the reward depending on min distance to any obstacle (usually negative)
+    final_pos_weight: -0.5 # Weight to compute the reward depending on min distance to any obstacle (usually negative)
+    
+    # Initial states:
+    init_linear_forward_speed: 0.0 # Initial linear speed in which we start each episode
+    init_linear_turn_speed: 0.0 # Initial angular speed in shich we start each episode
+    initial_poses: [[-1.0,-2.0,1.0,1.0],[0.0,-2.0,1.0,1.0],[1.0,-2.0,1.0,1.0],[-1.0,2.0,-1.0,1.0],[0.0,2.0,-1.0,1.0],[1.0,2.0,-1.0,1.0],
+                    [-2.0,-1.0,0.0,-1.0],[-2.0,0.0,0.0,-1.0],[-2.0,1.0,0.0,-1.0],[2.0,-1.0,1.0,0.0],[2.0,0.0,1.0,0.0],[2.0,1.0,1.0,0.0]]
+
+    # Target Position:
+    area_radius: 2
+    area_center: [0,0]
+    success_distance: 0.3
+

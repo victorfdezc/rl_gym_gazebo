@@ -1,0 +1,2 @@
+model_checkpoint_path: "/home/victor/rl_gym_gazebo/src/rl_gym_training/rl_turtlebot3/training_results_deepqlearn/model.ckpt"
+all_model_checkpoint_paths: "/home/victor/rl_gym_gazebo/src/rl_gym_training/rl_turtlebot3/training_results_deepqlearn/model.ckpt"
