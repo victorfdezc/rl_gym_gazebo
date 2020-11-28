@@ -1,0 +1,2 @@
+float32 current_Qdistance
+float32 average_Qdistance
