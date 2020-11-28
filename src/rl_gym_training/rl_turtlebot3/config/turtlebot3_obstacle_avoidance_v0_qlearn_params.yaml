@@ -5,7 +5,9 @@ turtlebot3_qlearn:
     gamma: 0.9
     epsilon: 1.0
     epsilon_discount: 0.999
-    nepisodes: 100000
+    min_epsilon: 0.05
+    #nepisodes: 100000
+    min_std: 50 # Minimum standard deviation needed to stop training
 
     # Actions parameters:
     linear_forward_speed: 0.3 # Speed for ging fowards
