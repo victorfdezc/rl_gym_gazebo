@@ -3,18 +3,18 @@ turtlebot3_rpp_dql:
     # Q-Learning parameters:
     learning_rate: 0.0001
     gamma: 0.99
-    epsilon: 0.1
+    epsilon: 1.0
     epsilon_discount: 0.9992
     min_epsilon: 0.05
     nepisodes: 100000
 
     # Model parameters:
-    hidden_layer_sizes: [5000,3000] # Hidden layers
+    hidden_layer_sizes: [3000,1500] # Hidden layers
     batch_size: 512
     min_experiences: 550 # Min samples experience buffer
     max_experiences: 30000 # Max samples experience buffer
     copy_period: 10000 # Update rate target network
-    load_model: 1 # Wether or not load a saved model, remember to decrease epsilon if True
+    load_model: 0 # Wether or not load a saved model, remember to decrease epsilon if True
 
     # Actions parameters:
     linear_forward_speed: 0.3 # Speed for ging fowards
@@ -26,8 +26,7 @@ turtlebot3_rpp_dql:
 
     # Observation parameters:
     max_distance: 2.5 # Maximum distance in meters we can measure
-    angle_ranges: [[-108,-90],[-90,-72],[-72,-54],[-54,-36],[-36,-18],[-18,0],
-                   [0,18],[18,36],[36,54],[54,72],[72,90],[90,108]] # Laser scan angle intervals taken into account for each observation value
+    angle_ranges: [[-90,-54],[-54,-18],[-18,18],[18,54],[54,90]] # Laser scan angle intervals taken into account for each observation value
     min_range: 0.15 # Minimum meters below wich we consider we have crashed
     max_distance_error: 2.5 # Maximum distance error from final position we can measure
 
