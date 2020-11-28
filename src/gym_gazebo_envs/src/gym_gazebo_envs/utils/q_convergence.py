@@ -7,6 +7,24 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
 class Qconvergence:
+    '''
+    This class is used to compute the convergence of a Q-Learning model.
+
+    Constructor Arguments:
+        env (object): OpenAI Gym environment object
+        model (object): the model used to approximate the Q function. This model must have a
+            getQ(state) method to get the Q estimate for all actions. If it is a TensorFlow model
+            it must have a copy_from(other_model) to copy the parameters of the other_model to the
+            current model.
+        tf_copy_model (object): if a TF model is used, it is needed another instance of the model used
+            in order to have a copy to compute the distance between the previous model (this copy) and
+            the current model (the instance given in the previous argument). As mentioned, this model
+            must have a copy_from(other_model) method in order to update the parameters of the copy with
+            the current parameters of the trained model.
+        nstates (int): number of points used to estimate the distance between functions
+        nsamples (int): number of samples to use to compute the moving average
+        plot_curve (bool): whether or not plot the convergence curve (useful for stopping criteria)
+    '''
     def __init__(self, env, model, tf_copy_model=None, nstates=64, nsamples=10, plot_curve=True):
         self.env = env
         self.model = model
