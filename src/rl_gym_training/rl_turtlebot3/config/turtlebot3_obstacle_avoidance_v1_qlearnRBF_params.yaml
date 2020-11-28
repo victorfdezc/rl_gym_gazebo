@@ -10,14 +10,14 @@ turtlebot3_qlearnRBF:
 
     # Actions parameters:
     linear_forward_speed: 0.3 # Speed for ging fowards
-    linear_turn_speed: 0.05 # Lienar speed when turning
+    linear_turn_speed: 0.01 # Lienar speed when turning
     angular_speed: 0.3 # Angular speed when turning Left or Right
 
     step_time: 0.2 # Number of seconds (in real time) a step takes, that is, the time we wait until we can perform another action
     reset_time: 0.5 # Number of seconds (in real time) we wait until the robot reaches its final state (in reset phases)
 
     # Observation parameters:
-    max_distance: 1.5 # Maximum distance in meters we can measure
+    max_distance: 2.5 # Maximum distance in meters we can measure
     angle_ranges: [[-90,-54],[-54,-18],[-18,18],[18,54],[54,90]] # Laser scan angle intervals taken into account for each observation value
     min_range: 0.15 # Minimum meters below wich we consider we have crashed
 

@@ -1,12 +1,20 @@
-turtlebot3_qlearn:
+turtlebot3_oa_dql:
     
     # Q-Learning parameters:
-    learning_rate: 0.01
-    gamma: 0.9
+    learning_rate: 0.0001
+    gamma: 0.99
     epsilon: 1.0
-    epsilon_discount: 0.999
+    epsilon_discount: 0.9992
     min_epsilon: 0.05
     nepisodes: 100000
+
+    # Model parameters:
+    hidden_layer_sizes: [3000,1500] # Hidden layers
+    batch_size: 512
+    min_experiences: 550 # Min samples experience buffer
+    max_experiences: 30000 # Max samples experience buffer
+    copy_period: 10000 # Update rate target network
+    load_model: 0 # Wether or not load a saved model, remember to decrease epsilon if True
 
     # Actions parameters:
     linear_forward_speed: 0.3 # Speed for ging fowards
@@ -17,8 +25,8 @@ turtlebot3_qlearn:
     reset_time: 0.5 # Number of seconds (in real time) we wait until the robot reaches its final state (in reset phases)
 
     # Observation parameters:
+    max_distance: 2.5 # Maximum distance in meters we can measure
     angle_ranges: [[-90,-54],[-54,-18],[-18,18],[18,54],[54,90]] # Laser scan angle intervals taken into account for each observation value
-    distance_ranges: [0.5,1.0] # maximum distances to discretize laser readings
     min_range: 0.15 # Minimum meters below wich we consider we have crashed
 
     # Rewards:

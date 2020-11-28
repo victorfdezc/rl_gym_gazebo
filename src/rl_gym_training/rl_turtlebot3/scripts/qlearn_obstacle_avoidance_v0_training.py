@@ -41,7 +41,7 @@ if __name__ == '__main__':
     # Init Gym Monitor
     rospack = rospkg.RosPack()
     pkg_path = rospack.get_path('rl_turtlebot3')
-    outdir = pkg_path + '/training_results_qlearn'
+    outdir = pkg_path + '/training_results_qlearn_obstacle_avoidance_v0'
     env = wrappers.Monitor(env, outdir, force=False, resume=True)
 
     start_time = time.time()

@@ -9,7 +9,7 @@ import rospkg
 import tensorflow as tf
 from rl_algorithms import deep_qlearn
 # Import the environment to register it
-from gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs import turtlebot3_reactive_path_planning_v0
+from gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs import turtlebot3_obstacle_avoidance_v1
 
 class standarize:
   '''
@@ -29,32 +29,32 @@ if __name__ == '__main__':
     rospy.init_node('turtlebot3_reactive_path_planning_deepqlearn', anonymous=True)
 
     # Create the Gym environment
-    env = gym.make('TurtleBot3ReactivePathPlanning-v0')
+    env = gym.make('TurtleBot3ObstacleAvoidance-v1')
 
     # Init Gym Monitor
     rospack = rospkg.RosPack()
     pkg_path = rospack.get_path('rl_turtlebot3')
-    outdir = pkg_path + '/training_results_deepqlearn_reactive_path_planning'
+    outdir = pkg_path + '/training_results_deepqlearn_obstacle_avoidance_v1'
     env = wrappers.Monitor(env, outdir, force=False, resume=True)
 
     # Loads parameters from the ROS param server. Parameters are stored in a 
     # .yaml file inside the /config directory. They are loaded at runtime by 
     # the launch file:
-    lr = rospy.get_param("/turtlebot3_rpp_dql/learning_rate")
-    epsilon = rospy.get_param("/turtlebot3_rpp_dql/epsilon")
-    gamma = rospy.get_param("/turtlebot3_rpp_dql/gamma")
-    epsilon_discount = rospy.get_param("/turtlebot3_rpp_dql/epsilon_discount")
-    min_epsilon = rospy.get_param("/turtlebot3_rpp_dql/min_epsilon")
-    nepisodes = rospy.get_param("/turtlebot3_rpp_dql/nepisodes")
-    angle_ranges = rospy.get_param("/turtlebot3_rpp_dql/angle_ranges")
-    max_distance = rospy.get_param("/turtlebot3_rpp_dql/max_distance")
-    max_distance_error = rospy.get_param("/turtlebot3_rpp_dql/max_distance_error")
-    load_model = rospy.get_param("/turtlebot3_rpp_dql/load_model")
-    hidden_layer_sizes = rospy.get_param("/turtlebot3_rpp_dql/hidden_layer_sizes")
-    copy_period = rospy.get_param("/turtlebot3_rpp_dql/copy_period")
-    min_experiences = rospy.get_param("/turtlebot3_rpp_dql/min_experiences")
-    max_experiences = rospy.get_param("/turtlebot3_rpp_dql/max_experiences")
-    batch_size = rospy.get_param("/turtlebot3_rpp_dql/batch_size")
+    lr = rospy.get_param("/turtlebot3_oa_dql/learning_rate")
+    epsilon = rospy.get_param("/turtlebot3_oa_dql/epsilon")
+    gamma = rospy.get_param("/turtlebot3_oa_dql/gamma")
+    epsilon_discount = rospy.get_param("/turtlebot3_oa_dql/epsilon_discount")
+    min_epsilon = rospy.get_param("/turtlebot3_oa_dql/min_epsilon")
+    nepisodes = rospy.get_param("/turtlebot3_oa_dql/nepisodes")
+    angle_ranges = rospy.get_param("/turtlebot3_oa_dql/angle_ranges")
+    max_distance = rospy.get_param("/turtlebot3_oa_dql/max_distance")
+    max_distance_error = rospy.get_param("/turtlebot3_oa_dql/max_distance_error")
+    load_model = rospy.get_param("/turtlebot3_oa_dql/load_model")
+    hidden_layer_sizes = rospy.get_param("/turtlebot3_oa_dql/hidden_layer_sizes")
+    copy_period = rospy.get_param("/turtlebot3_oa_dql/copy_period")
+    min_experiences = rospy.get_param("/turtlebot3_oa_dql/min_experiences")
+    max_experiences = rospy.get_param("/turtlebot3_oa_dql/max_experiences")
+    batch_size = rospy.get_param("/turtlebot3_oa_dql/batch_size")
 
     # Train the standarizer:
     scaler_ex = np.array([env.observation_space.sample() for x in range(20000)])
