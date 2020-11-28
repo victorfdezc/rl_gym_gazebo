@@ -1,6 +1,6 @@
 <launch>
-    <!-- Load QLearn parameters -->
-    <rosparam command="load" file="$(find rl_turtlebot3)/config/turtlebot3_qlearnRBF_params.yaml" />
+    <!-- Load parameters -->
+    <rosparam command="load" file="$(find rl_turtlebot3)/config/turtlebot3_obstacle_avoidance_v1_qlearnRBF_params.yaml" />
     <!-- Run the training script -->
-    <node pkg="rl_turtlebot3" name="turtlebot3_qlearnRBF" type="qlearnRBF_training.py" output="screen"/>
+    <node pkg="rl_turtlebot3" name="turtlebot3_qlearnRBF" type="qlearnRBF_obstacle_avoidance_v1_training.py" output="screen"/>
 </launch>
