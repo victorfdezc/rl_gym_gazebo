@@ -28,12 +28,12 @@ if __name__ == '__main__':
     # Loads parameters from the ROS param server. Parameters are stored in a 
     # .yaml file inside the /config directory. They are loaded at runtime by 
     # the launch file:
-    lr = rospy.get_param("/turtlebot3_qlearn/learning_rate")
-    epsilon = rospy.get_param("/turtlebot3_qlearn/epsilon")
-    gamma = rospy.get_param("/turtlebot3_qlearn/gamma")
-    epsilon_discount = rospy.get_param("/turtlebot3_qlearn/epsilon_discount")
-    min_epsilon = rospy.get_param("/turtlebot3_qlearn/min_epsilon")
-    nepisodes = rospy.get_param("/turtlebot3_qlearn/nepisodes")
+    lr = rospy.get_param("/turtlebot3_obstacle_avoidance_v0/learning_rate")
+    epsilon = rospy.get_param("/turtlebot3_obstacle_avoidance_v0/epsilon")
+    gamma = rospy.get_param("/turtlebot3_obstacle_avoidance_v0/gamma")
+    epsilon_discount = rospy.get_param("/turtlebot3_obstacle_avoidance_v0/epsilon_discount")
+    min_epsilon = rospy.get_param("/turtlebot3_obstacle_avoidance_v0/min_epsilon")
+    nepisodes = rospy.get_param("/turtlebot3_obstacle_avoidance_v0/nepisodes")
 
     # Initialises Q-Learning
     qlearn = qlearn.QLearn(env=env, epsilon=epsilon, lr=lr, gamma=gamma)

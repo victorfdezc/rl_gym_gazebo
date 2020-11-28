@@ -22,12 +22,12 @@ if __name__ == '__main__':
     # Loads parameters from the ROS param server. Parameters are stored in a 
     # .yaml file inside the /config directory. They are loaded at runtime by 
     # the launch file:
-    lr = rospy.get_param("/turtlebot3_qlearnRBF/learning_rate")
-    epsilon = rospy.get_param("/turtlebot3_qlearnRBF/epsilon")
-    gamma = rospy.get_param("/turtlebot3_qlearnRBF/gamma")
-    epsilon_discount = rospy.get_param("/turtlebot3_qlearnRBF/epsilon_discount")
-    min_epsilon = rospy.get_param("/turtlebot3_qlearnRBF/min_epsilon")
-    nepisodes = rospy.get_param("/turtlebot3_qlearnRBF/nepisodes")
+    lr = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/learning_rate")
+    epsilon = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/epsilon")
+    gamma = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/gamma")
+    epsilon_discount = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/epsilon_discount")
+    min_epsilon = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/min_epsilon")
+    nepisodes = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/nepisodes")
 
     rbf_samplers = [("rbf1", RBFSampler(gamma=0.05, n_components=500)),
                     ("rbf2", RBFSampler(gamma=1.0, n_components=1000)),
