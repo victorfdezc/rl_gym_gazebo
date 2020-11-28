@@ -35,7 +35,7 @@ if __name__ == '__main__':
     rospack = rospkg.RosPack()
     pkg_path = rospack.get_path('rl_turtlebot3')
     outdir = pkg_path + '/training_results_deepqlearn'
-    env = wrappers.Monitor(env, outdir, force=True)
+    env = wrappers.Monitor(env, outdir, force=False, resume=True)
 
     # Loads parameters from the ROS param server. Parameters are stored in a 
     # .yaml file inside the /config directory. They are loaded at runtime by 
@@ -44,6 +44,7 @@ if __name__ == '__main__':
     epsilon = rospy.get_param("/turtlebot3_rpp_dql/epsilon")
     gamma = rospy.get_param("/turtlebot3_rpp_dql/gamma")
     epsilon_discount = rospy.get_param("/turtlebot3_rpp_dql/epsilon_discount")
+    min_epsilon = rospy.get_param("/turtlebot3_rpp_dql/min_epsilon")
     nepisodes = rospy.get_param("/turtlebot3_rpp_dql/nepisodes")
     angle_ranges = rospy.get_param("/turtlebot3_rpp_dql/angle_ranges")
     max_distance = rospy.get_param("/turtlebot3_rpp_dql/max_distance")
@@ -88,6 +89,7 @@ if __name__ == '__main__':
     target_network.set_session(session)
 
     start_time = time.time()
+    total_steps = 0
     # Run the number of episodes specified
     for n in range(nepisodes):
         # if (x%10) == 0 or ((x-1)%10) == 0: env.render(mode="human")
@@ -98,7 +100,7 @@ if __name__ == '__main__':
         #     env.render("close")
 
         # Epsilon decay
-        if model.epsilon > 0.05:
+        if model.epsilon > min_epsilon:
             model.epsilon *= epsilon_discount
 
         if n%50==0: 
@@ -130,13 +132,15 @@ if __name__ == '__main__':
             episode_reward += reward
             episode_steps += 1
             episode_error += error
+            total_steps += 1
 
-            if episode_steps % copy_period == 0:
+            if total_steps % copy_period == 0:
+                rospy.loginfo("Target Network Updated!")
                 target_network.copy_from(model)
 
         m, s = divmod(int(time.time() - start_time), 60)
         h, m = divmod(m, 60)
-        rospy.loginfo(("Episode: " + str(n + 1) + " - Reward: " + str(episode_reward) + " - Steps: " + str(episode_steps) 
+        rospy.loginfo(("Episode: " + str(n + 1) + " - Reward: " + str(round(episode_reward,2)) + " - Steps: " + str(episode_steps) 
                         + " - Epsilon: " + str(round(model.epsilon, 2)) + " - Error: " + str(round(episode_error/episode_steps, 2)) + " - Time: %d:%02d:%02d" % (h, m, s)))
 
     # Once the training is finished, we close the environment
