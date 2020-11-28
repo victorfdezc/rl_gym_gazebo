@@ -48,7 +48,6 @@ if __name__ == '__main__':
     nepisodes = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/nepisodes")
     angle_ranges = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/angle_ranges")
     max_distance = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/max_distance")
-    max_distance_error = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/max_distance_error")
     load_model = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/load_model")
     hidden_layer_sizes = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/hidden_layer_sizes")
     copy_period = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/copy_period")

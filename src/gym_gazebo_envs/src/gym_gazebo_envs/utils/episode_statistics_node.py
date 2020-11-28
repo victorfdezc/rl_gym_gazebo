@@ -94,13 +94,10 @@ if __name__ == '__main__':
 
             data_updated = False
 
-            rospy.loginfo("\nEpisode: {:d}\n    \\
-                Average (last 100 episodes):\n     Rewards: {:0.2f}\n    Steps: {:0.2f}\n    Step Time (sec): {:0.6f}\n     \\
-                Standard Deviation (last 100 episodes):\n       Rewards: {:0.2f}\n      Steps: {:0.2f}      Step Time: {:0.6f}\n\\
-                ---------------".format(episodes[-1],ma_rewards[-1],ma_nsteps[-1],ma_tstep[-1], std_rewards, std_nsteps, std_tstep))
+            rospy.loginfo("\nEpisode: {:d}\n    Average (last 100 episodes):\n      Rewards: {:0.2f}\n      Steps: {:0.2f}\n      Step Time (sec): {:0.6f}\n    Standard Deviation (last 100 episodes):\n      Rewards: {:0.2f}\n      Steps: {:0.2f}\n      Step Time: {:0.6f}\n---------------".format(int(episodes[-1]),ma_rewards[-1],ma_nsteps[-1],ma_tstep[-1], std_rewards, std_nsteps, std_tstep))
             msg.episode_number = episodes[-1]
-            msg.episode_reward = ma_rewards[-1]
-            msg.total_episode_steps = ma_nsteps[-1]
+            msg.average_reward = ma_rewards[-1]
+            msg.average_steps = ma_nsteps[-1]
             msg.average_step_time = ma_tstep[-1]
             msg.std_reward = std_rewards
             msg.std_steps = std_nsteps

@@ -52,6 +52,16 @@ add_message_files(
   RLEpisodeInfo.msg
 )
 
+add_message_files(
+  FILES
+  episodeStatistics.msg
+)
+
+add_message_files(
+  FILES
+  Qdistance.msg
+)
+
 ## Generate services in the 'srv' folder
 # add_service_files(
 #   FILES
