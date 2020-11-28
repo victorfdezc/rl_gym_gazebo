@@ -1,0 +1,7 @@
+int32 episode_number
+float32 average_reward
+float32 average_steps
+float32 average_step_time
+float32 std_reward
+float32 std_steps
+float32 std_step_time
