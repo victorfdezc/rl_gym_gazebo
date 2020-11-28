@@ -1,0 +1,6 @@
+<launch>
+    <!-- Load QLearn parameters -->
+    <rosparam command="load" file="$(find rl_turtlebot3)/config/turtlebot3_obstacle_avoidance_v0_qlearn_params.yaml" />
+    <!-- Run the training script -->
+    <node pkg="rl_turtlebot3" name="turtlebot3_qlearn" type="qlearn_obstacle_avoidance_v0_training.py" output="screen"/>
+</launch>
