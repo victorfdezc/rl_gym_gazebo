@@ -5,6 +5,7 @@ turtlebot3_rpp_dql:
     gamma: 0.99
     epsilon: 0.1
     epsilon_discount: 0.9992
+    min_epsilon: 0.05
     nepisodes: 100000
 
     # Model parameters:
