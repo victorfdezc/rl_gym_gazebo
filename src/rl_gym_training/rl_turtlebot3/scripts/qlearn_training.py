@@ -32,6 +32,7 @@ if __name__ == '__main__':
     epsilon = rospy.get_param("/turtlebot3_qlearn/epsilon")
     gamma = rospy.get_param("/turtlebot3_qlearn/gamma")
     epsilon_discount = rospy.get_param("/turtlebot3_qlearn/epsilon_discount")
+    min_epsilon = rospy.get_param("/turtlebot3_qlearn/min_epsilon")
     nepisodes = rospy.get_param("/turtlebot3_qlearn/nepisodes")
 
     # Initialises Q-Learning
@@ -41,7 +42,7 @@ if __name__ == '__main__':
     rospack = rospkg.RosPack()
     pkg_path = rospack.get_path('rl_turtlebot3')
     outdir = pkg_path + '/training_results_qlearn'
-    env = wrappers.Monitor(env, outdir, force=True)
+    env = wrappers.Monitor(env, outdir, force=False, resume=True)
 
     start_time = time.time()
     # Run the number of episodes specified
@@ -54,7 +55,7 @@ if __name__ == '__main__':
         #     env.render("close")
 
         # Epsilon decay
-        if qlearn.epsilon > 0.05:
+        if qlearn.epsilon > min_epsilon:
             qlearn.epsilon *= epsilon_discount
 
         # Initialize the environment and get first state of the robot
@@ -80,7 +81,7 @@ if __name__ == '__main__':
 
         m, s = divmod(int(time.time() - start_time), 60)
         h, m = divmod(m, 60)
-        rospy.loginfo(("Episode: " + str(n + 1) + " - Reward: " + str(episode_reward) + " - Steps: " + str(episode_steps) 
+        rospy.loginfo(("Episode: " + str(n + 1) + " - Reward: " + str(round(episode_reward,2)) + " - Steps: " + str(episode_steps) 
                         + " - Epsilon: " + str(round(qlearn.epsilon, 2)) + " - Time: %d:%02d:%02d" % (h, m, s)))
 
     # Once the training is finished, we close the environment
