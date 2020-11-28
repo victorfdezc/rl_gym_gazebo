@@ -1,4 +1,4 @@
-turtlebot3_qlearn:
+turtlebot3_obstacle_avoidance_v0:
     
     # Q-Learning parameters:
     learning_rate: 0.01

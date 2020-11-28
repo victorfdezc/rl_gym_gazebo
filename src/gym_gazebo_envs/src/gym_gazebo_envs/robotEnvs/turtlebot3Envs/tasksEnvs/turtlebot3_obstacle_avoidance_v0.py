@@ -57,26 +57,26 @@ class TurtleBot3ObstacleAvoidanceEnv(turtlebot3_env.TurtleBot3Env):
         # First we load all the parameters defined in the .yaml file.
         
         # Actions:
-        self.linear_forward_speed = rospy.get_param('/turtlebot3_qlearn/linear_forward_speed')
-        self.linear_turn_speed = rospy.get_param('/turtlebot3_qlearn/linear_turn_speed')
-        self.angular_speed = rospy.get_param('/turtlebot3_qlearn/angular_speed')
-        self.step_time = rospy.get_param('/turtlebot3_qlearn/step_time')
-        self.reset_time = rospy.get_param('/turtlebot3_qlearn/reset_time')
+        self.linear_forward_speed = rospy.get_param('/turtlebot3_obstacle_avoidance_v0/linear_forward_speed')
+        self.linear_turn_speed = rospy.get_param('/turtlebot3_obstacle_avoidance_v0/linear_turn_speed')
+        self.angular_speed = rospy.get_param('/turtlebot3_obstacle_avoidance_v0/angular_speed')
+        self.step_time = rospy.get_param('/turtlebot3_obstacle_avoidance_v0/step_time')
+        self.reset_time = rospy.get_param('/turtlebot3_obstacle_avoidance_v0/reset_time')
         
         # Observation:
-        self.angle_ranges = rospy.get_param("/turtlebot3_qlearn/angle_ranges")
-        self.distance_ranges = rospy.get_param("/turtlebot3_qlearn/distance_ranges")
-        self.min_range = rospy.get_param('/turtlebot3_qlearn/min_range')
+        self.angle_ranges = rospy.get_param("/turtlebot3_obstacle_avoidance_v0/angle_ranges")
+        self.distance_ranges = rospy.get_param("/turtlebot3_obstacle_avoidance_v0/distance_ranges")
+        self.min_range = rospy.get_param('/turtlebot3_obstacle_avoidance_v0/min_range')
 
         # Rewards:
-        self.forward_reward = rospy.get_param("/turtlebot3_qlearn/forward_reward")
-        self.turn_reward = rospy.get_param("/turtlebot3_qlearn/turn_reward")
-        self.end_episode_points = rospy.get_param("/turtlebot3_qlearn/end_episode_points")
+        self.forward_reward = rospy.get_param("/turtlebot3_obstacle_avoidance_v0/forward_reward")
+        self.turn_reward = rospy.get_param("/turtlebot3_obstacle_avoidance_v0/turn_reward")
+        self.end_episode_points = rospy.get_param("/turtlebot3_obstacle_avoidance_v0/end_episode_points")
 
         # Initial states:
-        self.init_linear_forward_speed = rospy.get_param('/turtlebot3_qlearn/init_linear_forward_speed')
-        self.init_linear_turn_speed = rospy.get_param('/turtlebot3_qlearn/init_linear_turn_speed')
-        self.initial_poses = rospy.get_param("/turtlebot3_qlearn/initial_poses")
+        self.init_linear_forward_speed = rospy.get_param('/turtlebot3_obstacle_avoidance_v0/init_linear_forward_speed')
+        self.init_linear_turn_speed = rospy.get_param('/turtlebot3_obstacle_avoidance_v0/init_linear_turn_speed')
+        self.initial_poses = rospy.get_param("/turtlebot3_obstacle_avoidance_v0/initial_poses")
 
 
         # Now we are going to define the attributes needed to make a Gym environment.

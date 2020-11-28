@@ -1,4 +1,4 @@
-turtlebot3_rpp_dql:
+turtlebot3_reactive_path_planning_v0:
     
     # Q-Learning parameters:
     learning_rate: 0.0001

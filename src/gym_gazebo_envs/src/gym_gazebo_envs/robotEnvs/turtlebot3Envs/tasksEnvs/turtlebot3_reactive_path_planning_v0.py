@@ -59,33 +59,33 @@ class TurtleBot3ReactivePathPlanning(turtlebot3_env.TurtleBot3Env):
         # First we load all the parameters defined in the .yaml file.
         
         # Actions:
-        self.linear_forward_speed = rospy.get_param('/turtlebot3_rpp_dql/linear_forward_speed')
-        self.linear_turn_speed = rospy.get_param('/turtlebot3_rpp_dql/linear_turn_speed')
-        self.angular_speed = rospy.get_param('/turtlebot3_rpp_dql/angular_speed')
-        self.step_time = rospy.get_param('/turtlebot3_rpp_dql/step_time')
-        self.reset_time = rospy.get_param('/turtlebot3_rpp_dql/reset_time')
+        self.linear_forward_speed = rospy.get_param('/turtlebot3_reactive_path_planning_v0/linear_forward_speed')
+        self.linear_turn_speed = rospy.get_param('/turtlebot3_reactive_path_planning_v0/linear_turn_speed')
+        self.angular_speed = rospy.get_param('/turtlebot3_reactive_path_planning_v0/angular_speed')
+        self.step_time = rospy.get_param('/turtlebot3_reactive_path_planning_v0/step_time')
+        self.reset_time = rospy.get_param('/turtlebot3_reactive_path_planning_v0/reset_time')
         
         # Observation:
-        self.max_distance = rospy.get_param("/turtlebot3_rpp_dql/max_distance")
-        self.angle_ranges = rospy.get_param("/turtlebot3_rpp_dql/angle_ranges")
-        self.min_range = rospy.get_param('/turtlebot3_rpp_dql/min_range')
-        self.max_distance_error = rospy.get_param("/turtlebot3_rpp_dql/max_distance_error")
+        self.max_distance = rospy.get_param("/turtlebot3_reactive_path_planning_v0/max_distance")
+        self.angle_ranges = rospy.get_param("/turtlebot3_reactive_path_planning_v0/angle_ranges")
+        self.min_range = rospy.get_param('/turtlebot3_reactive_path_planning_v0/min_range')
+        self.max_distance_error = rospy.get_param("/turtlebot3_reactive_path_planning_v0/max_distance_error")
 
         # Rewards:
-        self.collision_reward = rospy.get_param("/turtlebot3_rpp_dql/collision_reward")
-        self.Wo = rospy.get_param("/turtlebot3_rpp_dql/obstacle_weight")
-        self.success_reward = rospy.get_param("/turtlebot3_rpp_dql/success_reward")
-        self.Wfp = rospy.get_param("/turtlebot3_rpp_dql/final_pos_weight")
+        self.collision_reward = rospy.get_param("/turtlebot3_reactive_path_planning_v0/collision_reward")
+        self.Wo = rospy.get_param("/turtlebot3_reactive_path_planning_v0/obstacle_weight")
+        self.success_reward = rospy.get_param("/turtlebot3_reactive_path_planning_v0/success_reward")
+        self.Wfp = rospy.get_param("/turtlebot3_reactive_path_planning_v0/final_pos_weight")
 
         # Initial states:
-        self.init_linear_forward_speed = rospy.get_param('/turtlebot3_rpp_dql/init_linear_forward_speed')
-        self.init_linear_turn_speed = rospy.get_param('/turtlebot3_rpp_dql/init_linear_turn_speed')
-        self.initial_poses = rospy.get_param("/turtlebot3_rpp_dql/initial_poses")
+        self.init_linear_forward_speed = rospy.get_param('/turtlebot3_reactive_path_planning_v0/init_linear_forward_speed')
+        self.init_linear_turn_speed = rospy.get_param('/turtlebot3_reactive_path_planning_v0/init_linear_turn_speed')
+        self.initial_poses = rospy.get_param("/turtlebot3_reactive_path_planning_v0/initial_poses")
 
         # Target position:
-        self.area_radius = rospy.get_param('/turtlebot3_rpp_dql/area_radius')
-        self.area_center = rospy.get_param('/turtlebot3_rpp_dql/area_center')
-        self.success_distance = rospy.get_param('/turtlebot3_rpp_dql/success_distance')
+        self.area_radius = rospy.get_param('/turtlebot3_reactive_path_planning_v0/area_radius')
+        self.area_center = rospy.get_param('/turtlebot3_reactive_path_planning_v0/area_center')
+        self.success_distance = rospy.get_param('/turtlebot3_reactive_path_planning_v0/success_distance')
 
 
         # Now we are going to define the attributes needed to make a Gym environment.
