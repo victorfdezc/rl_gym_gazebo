@@ -3,17 +3,17 @@ turtlebot3_obstacle_avoidance_v1:
     # Q-Learning parameters:
     learning_rate: 0.0001
     gamma: 0.99
-    epsilon: 1.0
-    epsilon_discount: 0.9992
-    min_epsilon: 0.05
+    epsilon: 0.5
+    epsilon_discount: 0.999
+    min_epsilon: 0.1
     nepisodes: 100000
 
     # Model parameters:
-    hidden_layer_sizes: [3000,1500] # Hidden layers
-    batch_size: 512
+    hidden_layer_sizes: [50,30] # Hidden layers
+    batch_size: 64
     min_experiences: 550 # Min samples experience buffer
-    max_experiences: 30000 # Max samples experience buffer
-    copy_period: 10000 # Update rate target network
+    max_experiences: 5000 # Max samples experience buffer
+    copy_period: 500 # Update rate target network
     load_model: 0 # Wether or not load a saved model, remember to decrease epsilon if True
 
     # Actions parameters:

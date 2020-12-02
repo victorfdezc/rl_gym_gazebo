@@ -11,7 +11,7 @@ class FCLayer:
               input_size,
               output_size, 
               activation_function=tf.math.tanh, 
-              initializer=tf.random_normal_initializer, 
+              initializer=tf.keras.initializers.glorot_uniform, 
               use_bias=True, 
               batch_norm = False):
     
@@ -101,7 +101,7 @@ class DQN:
     selected_action_values = tf.math.reduce_sum(Y_hat * tf.one_hot(self.actions, output_size), axis=1)
     # And compute cost
     self.cost = tf.math.reduce_sum(tf.square(self.G - selected_action_values))
-    self.train_op = tf.compat.v1.train.RMSPropOptimizer(lr).minimize(self.cost)
+    self.train_op = tf.compat.v1.train.AdamOptimizer(lr).minimize(self.cost)
 
     # Experience replay
     self.experience = {'s': [], 'a': [], 'r': [], 's2': [], 'done': []}
