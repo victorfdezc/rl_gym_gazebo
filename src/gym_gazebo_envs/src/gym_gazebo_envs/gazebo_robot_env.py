@@ -161,6 +161,8 @@ class GazeboRobotEnv(gym.Env):
         elif mode == "close":
             self.gazebo.setPhysicsParameters(update_rate=-1)
             if proccount > 0:
+                # TODO: average step time increases when killing the process. If gzclient is executed again, the average
+                # step time returns to be the same
                 # Kill all "gzclient" process
                 os.popen("killall -9 gzclient")
 
