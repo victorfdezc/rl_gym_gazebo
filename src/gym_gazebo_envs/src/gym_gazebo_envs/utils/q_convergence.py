@@ -37,15 +37,18 @@ class Qconvergence:
             self.old_model = tf_copy_model
             self.tf_model = True
 
+        self.first = True
+
         self.Qdistances_mean = np.array([])
         self.Qdistances = np.array([])
 
-        self.pub = rospy.Publisher("/Qdistance", Float32, queue_size=10)
+        self.pub = rospy.Publisher("/Qdistance", Qdistance, queue_size=10)
         self.msg = Qdistance()
 
-        if plot_curve:
+        self.plot_curve = plot_curve
+        if self.plot_curve:
             plt.ion()
-            self.fig = plt.figure(1)
+            self.fig = plt.figure()
             self.fig.canvas.set_window_title("Q Convergence Curve")
             self.ax = self.fig.add_subplot(111)
             self.ax.xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -54,19 +57,22 @@ class Qconvergence:
 
 
     def __call__(self):
-        states = [self.env.observation_space.sample() for x in range(self.nstates)]
-        actions = [self.env.action_space.sample() for x in range(self.nstates)]
-        Qpred = np.array([self.model.getQ(states[i])[0][actions[i]] for i in range(self.nstates)])
-        Q_oldpred = np.array([self.old_model.getQ(states[i])[0][actions[i]] for i in range(self.nstates)])
-        Qdistance = np.sum(np.square(Qpred-Q_oldpred))/self.nstates
-        self.add_distance(Qdistance)
+        if not self.first:
+            states = [self.env.observation_space.sample() for x in range(self.nstates)]
+            actions = [self.env.action_space.sample() for x in range(self.nstates)]
+            Qpred = np.array([self.model.getQ(states[i])[0][actions[i]] for i in range(self.nstates)])
+            Q_oldpred = np.array([self.old_model.getQ(states[i])[0][actions[i]] for i in range(self.nstates)])
+            Qdistance = np.sum(np.abs(Qpred-Q_oldpred))/self.nstates
+            self.add_distance(Qdistance)
 
-        self.msg.current_Qdistance = Qdistance
-        self.msg.average_Qdistance = self.Qdistances_mean[-1]
-        self.pub.publish(msg)
+            self.msg.current_Qdistance = Qdistance
+            self.msg.average_Qdistance = self.Qdistances_mean[-1]
+            self.pub.publish(self.msg)
 
-        if plot_curve:
-            self.plot_convergence_curve()
+            if self.plot_curve:
+                self.plot_convergence_curve()
+        else:
+            self.first = False
 
         if not self.tf_model:
             self.old_model = copy.deepcopy(self.model)
