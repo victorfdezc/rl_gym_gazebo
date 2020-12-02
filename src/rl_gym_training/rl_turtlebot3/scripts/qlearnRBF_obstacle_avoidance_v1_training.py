@@ -10,6 +10,7 @@ from rl_algorithms import qlearnRBF
 from sklearn.kernel_approximation import RBFSampler
 # Import the environment to register it
 from gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs import turtlebot3_obstacle_avoidance_v1
+from gym_gazebo_envs.utils.q_convergence import Qconvergence
 
 
 if __name__ == '__main__':
@@ -29,16 +30,16 @@ if __name__ == '__main__':
     min_epsilon = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/min_epsilon")
     nepisodes = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/nepisodes")
 
-    rbf_samplers = [("rbf1", RBFSampler(gamma=0.05, n_components=500)),
-                    ("rbf2", RBFSampler(gamma=1.0, n_components=1000)),
-                    ("rbf3", RBFSampler(gamma=0.5, n_components=1000)),
-                    ("rbf4", RBFSampler(gamma=0.1, n_components=500)),
-                    ("rbf5", RBFSampler(gamma=5.0, n_components=500)),
-                    ("rbf6", RBFSampler(gamma=2.0, n_components=500))]
+    rbf_samplers = [("rbf1", RBFSampler(gamma=0.05, n_components=10)),
+                    ("rbf2", RBFSampler(gamma=1.0, n_components=10)),
+                    ("rbf3", RBFSampler(gamma=0.5, n_components=10)),
+                    ("rbf4", RBFSampler(gamma=0.1, n_components=10)),
+                    ("rbf5", RBFSampler(gamma=5.0, n_components=10)),
+                    ("rbf6", RBFSampler(gamma=2.0, n_components=10))]
     observation_examples =  np.array([env.observation_space.sample() for x in range(20000)])
 
     # Initialises Q-Learning
-    qlearn = qlearnRBF.QLearnRBF(env=env, epsilon=epsilon, lr=lr, gamma=gamma, 
+    qlearn = qlearnRBF.QLearnRBF(n_actions=env.action_space.n, epsilon=epsilon, lr=lr, gamma=gamma, 
                 rbf_samplers=rbf_samplers, observation_examples=observation_examples)
 
     # Init Gym Monitor
@@ -46,6 +47,9 @@ if __name__ == '__main__':
     pkg_path = rospack.get_path('rl_turtlebot3')
     outdir = pkg_path + '/training_results_qlearnRBF_obstacle_avoidance_v1'
     env = wrappers.Monitor(env, outdir, force=False, resume=True)
+
+    # Instantiate QConvergence object:
+    qconvergence = Qconvergence(env,qlearn, nstates=64, nsamples=10, plot_curve=True)
 
     start_time = time.time()
     # Run the number of episodes specified
@@ -60,6 +64,10 @@ if __name__ == '__main__':
         # Epsilon decay
         if qlearn.epsilon > min_epsilon:
             qlearn.epsilon *= epsilon_discount
+
+        if n%2==0 and n>10:
+          # Check network convergence
+          qconvergence()
 
         # Initialize the environment and get first state of the robot
         state = env.reset()

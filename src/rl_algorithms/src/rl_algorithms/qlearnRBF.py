@@ -7,11 +7,15 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.kernel_approximation import RBFSampler
 
 class QLearnRBF:
-    def __init__(self, env, epsilon=0.1, lr=0.1, gamma=0.99, reg_term=0.0, rbf_samplers = None, observation_examples = None):
-        self.env = env
+    def __init__(self, env=None, n_actions=None, epsilon=0.1, lr=0.1, gamma=0.99, reg_term=0.0, rbf_samplers=None, observation_examples=None):
+        if not env == None:
+            self.env = env
+            self.actions = range(env.action_space.n)
+        else:
+            self.actions = range(n_actions)
+
         self.epsilon = epsilon # Exploration constant (Epsilon-Greedy)
         self.gamma = gamma # Discount factor
-        self.actions = range(env.action_space.n)
 
         # RBF kernels implementation example with Scikit-learn (RBF feature extraction)
         if rbf_samplers == None:
@@ -70,7 +74,7 @@ class QLearnRBF:
         Epsilon-Greedy
         '''
         if np.random.random() < self.epsilon:
-            return self.env.action_space.sample()
+            return np.random.choice(self.actions)
         else:
             return np.argmax(self.getQ(state))
 
