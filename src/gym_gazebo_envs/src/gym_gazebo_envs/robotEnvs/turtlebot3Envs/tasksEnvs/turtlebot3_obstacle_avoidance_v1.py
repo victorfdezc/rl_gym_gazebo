@@ -23,7 +23,7 @@ To register an environment, we have the following arguments:
 register(
         id = 'TurtleBot3ObstacleAvoidance-v1',
         entry_point = 'gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs.turtlebot3_obstacle_avoidance_v1:TurtleBot3ObstacleAvoidanceEnv',
-        max_episode_steps = 1000
+        max_episode_steps = 500
     )
 
 '''
