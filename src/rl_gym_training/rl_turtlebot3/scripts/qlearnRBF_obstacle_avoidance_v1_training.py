@@ -30,12 +30,12 @@ if __name__ == '__main__':
     min_epsilon = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/min_epsilon")
     nepisodes = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/nepisodes")
 
-    rbf_samplers = [("rbf1", RBFSampler(gamma=0.05, n_components=10)),
-                    ("rbf2", RBFSampler(gamma=1.0, n_components=10)),
-                    ("rbf3", RBFSampler(gamma=0.5, n_components=10)),
-                    ("rbf4", RBFSampler(gamma=0.1, n_components=10)),
-                    ("rbf5", RBFSampler(gamma=5.0, n_components=10)),
-                    ("rbf6", RBFSampler(gamma=2.0, n_components=10))]
+    rbf_samplers = [("rbf1", RBFSampler(gamma=0.05, n_components=100)),
+                    ("rbf2", RBFSampler(gamma=1.0, n_components=100)),
+                    ("rbf3", RBFSampler(gamma=0.5, n_components=100)),
+                    ("rbf4", RBFSampler(gamma=0.1, n_components=100)),
+                    ("rbf5", RBFSampler(gamma=5.0, n_components=100)),
+                    ("rbf6", RBFSampler(gamma=2.0, n_components=100))]
     observation_examples =  np.array([env.observation_space.sample() for x in range(20000)])
 
     # Initialises Q-Learning
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     env = wrappers.Monitor(env, outdir, force=False, resume=True)
 
     # Instantiate QConvergence object:
-    qconvergence = Qconvergence(env,qlearn, nstates=64, nsamples=10, plot_curve=True)
+    qconvergence = Qconvergence(env,qlearn, nstates=64, nsamples=50, plot_curve=True)
 
     start_time = time.time()
     # Run the number of episodes specified
