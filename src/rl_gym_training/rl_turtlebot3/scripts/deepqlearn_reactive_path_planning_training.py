@@ -10,6 +10,8 @@ import tensorflow as tf
 from rl_algorithms import deep_qlearn
 # Import the environment to register it
 from gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs import turtlebot3_reactive_path_planning_v0
+from gym_gazebo_envs.utils.q_convergence import Qconvergence
+from gym_gazebo_envs.utils.real_time_plot import realTimePlot
 
 class standarize:
   '''
@@ -67,9 +69,11 @@ if __name__ == '__main__':
 
     # Create main DQN and target DQN
     model = deep_qlearn.DQN(input_size, output_size, hidden_layer_sizes, epsilon=epsilon, lr=lr, 
-                gamma=gamma, min_experiences=min_experiences, max_experiences=max_experiences,batch_size=batch_size)
+                gamma=gamma, min_experiences=min_experiences, max_experiences=max_experiences, batch_size=batch_size, activation_function=tf.nn.leaky_relu)
     target_network = deep_qlearn.DQN(input_size, output_size, hidden_layer_sizes, epsilon=epsilon, lr=lr,
-                        gamma=gamma, min_experiences=min_experiences, max_experiences=max_experiences, batch_size=batch_size)
+                        gamma=gamma, min_experiences=min_experiences, max_experiences=max_experiences, batch_size=batch_size, activation_function=tf.nn.leaky_relu)
+    network_copy = deep_qlearn.DQN(input_size, output_size, hidden_layer_sizes, epsilon=epsilon, lr=lr,
+                        gamma=gamma, min_experiences=min_experiences, max_experiences=max_experiences, batch_size=batch_size, activation_function=tf.nn.leaky_relu)
 
     # Create session and saver object
     session = tf.compat.v1.Session()
@@ -87,6 +91,11 @@ if __name__ == '__main__':
 
     model.set_session(session)
     target_network.set_session(session)
+    network_copy.set_session(session)
+
+    # Instantiate QConvergence object:
+    qconvergence = Qconvergence(env,model,tf_copy_model=network_copy, nstates=256, nsamples=50, plot_curve=True)
+    error_plot = realTimePlot("Episode Error")
 
     start_time = time.time()
     total_steps = 0
@@ -107,9 +116,13 @@ if __name__ == '__main__':
           # Save the variables to disk.
           save_path = saver.save(session, outdir+"/model.ckpt")
 
+        if n%2==0 and n>10:
+          # Check network convergence
+          qconvergence()
+
         # Initialize the environment and get first state of the robot
-        observation = env.reset()
-        state = scaler(observation)
+        state = env.reset()
+        # state = scaler(observation)
 
         done = False
         episode_reward = 0
@@ -118,9 +131,9 @@ if __name__ == '__main__':
         while not done:
             # Choose an action based on the state
             action = model.chooseAction(state)
-            next_observation, reward, done, info = env.step(action)
+            next_state, reward, done, info = env.step(action)
             # Standarize the new observation:
-            next_state = scaler(next_observation)
+            # next_state = scaler(next_observation)
             
             # Update experience buffer
             model.add_experience(state, action, reward, next_state, done)
@@ -135,8 +148,10 @@ if __name__ == '__main__':
             total_steps += 1
 
             if total_steps % copy_period == 0:
-                rospy.loginfo("Target Network Updated!")
+                # rospy.loginfo("Target Network Updated!")
                 target_network.copy_from(model)
+
+        error_plot(episode_error/episode_steps)
 
         m, s = divmod(int(time.time() - start_time), 60)
         h, m = divmod(m, 60)

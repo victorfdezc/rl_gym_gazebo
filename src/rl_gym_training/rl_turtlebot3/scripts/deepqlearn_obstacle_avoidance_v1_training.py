@@ -93,7 +93,7 @@ if __name__ == '__main__':
     network_copy.set_session(session)
 
     # Instantiate QConvergence object:
-    qconvergence = Qconvergence(env,model,tf_copy_model=network_copy, nstates=256, nsamples=10, plot_curve=True)
+    qconvergence = Qconvergence(env,model,tf_copy_model=network_copy, nstates=256, nsamples=50, plot_curve=True)
     error_plot = realTimePlot("Episode Error")
 
     start_time = time.time()
@@ -147,7 +147,7 @@ if __name__ == '__main__':
             total_steps += 1
 
             if total_steps % copy_period == 0:
-                rospy.loginfo("Target Network Updated!")
+                # rospy.loginfo("Target Network Updated!")
                 target_network.copy_from(model)
 
         error_plot(episode_error/episode_steps)
