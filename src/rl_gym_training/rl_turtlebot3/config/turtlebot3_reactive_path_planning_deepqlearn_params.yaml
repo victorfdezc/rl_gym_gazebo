@@ -4,16 +4,16 @@ turtlebot3_reactive_path_planning_v0:
     learning_rate: 0.0001
     gamma: 0.99
     epsilon: 1.0
-    epsilon_discount: 0.9992
-    min_epsilon: 0.05
+    epsilon_discount: 0.999
+    min_epsilon: 0.1
     nepisodes: 100000
 
     # Model parameters:
-    hidden_layer_sizes: [3000,1500] # Hidden layers
-    batch_size: 512
-    min_experiences: 550 # Min samples experience buffer
-    max_experiences: 30000 # Max samples experience buffer
-    copy_period: 10000 # Update rate target network
+    hidden_layer_sizes: [500,300] # Hidden layers
+    batch_size: 32
+    min_experiences: 100 # Min samples experience buffer
+    max_experiences: 10000 # Max samples experience buffer
+    copy_period: 50 # Update rate target network
     load_model: 0 # Wether or not load a saved model, remember to decrease epsilon if True
 
     # Actions parameters:
@@ -31,11 +31,11 @@ turtlebot3_reactive_path_planning_v0:
     max_distance_error: 2.5 # Maximum distance error from final position we can measure
 
     # Rewards:
-    collision_reward: -150 # Reward when crashing
-    success_reward: 500 # Reward when arriving to final position
+    collision_reward: -200 # Reward when crashing
+    success_reward: 400 # Reward when arriving to final position
     # Reward equation: R = Wo * (1/min_obs_distance) + Wfp * (distance_final_pos)
     obstacle_weight: 0.0 # Weight to compute the reward depending on min distance to any obstacle (usually negative)
-    final_pos_weight: -1 # Weight to compute the reward depending on min distance to any obstacle (usually negative)
+    final_pos_weight: -0.5 # Weight to compute the reward depending on min distance to any obstacle (usually negative)
     
     # Initial states:
     init_linear_forward_speed: 0.0 # Initial linear speed in which we start each episode
