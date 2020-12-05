@@ -9,7 +9,7 @@ import rospkg
 from rl_algorithms import qlearnRBF
 from sklearn.kernel_approximation import RBFSampler
 # Import the environment to register it
-from gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs import turtlebot3_obstacle_avoidance_v1
+from gym_gazebo_envs.robotEnvs.turtlebot3Envs.tasksEnvs import turtlebot3_reactive_path_planning_v0
 from gym_gazebo_envs.utils.q_convergence import Qconvergence
 
 
