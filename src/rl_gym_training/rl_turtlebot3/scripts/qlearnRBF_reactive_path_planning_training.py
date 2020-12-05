@@ -15,20 +15,20 @@ from gym_gazebo_envs.utils.q_convergence import Qconvergence
 
 if __name__ == '__main__':
     # Start ROS node
-    rospy.init_node('turtlebot3_obstacle_avoidance_qlearnRBF', anonymous=True)
+    rospy.init_node('turtlebot3_reactive_path_planning_qlearnRBF', anonymous=True)
 
     # Create the Gym environment
-    env = gym.make('TurtleBot3ObstacleAvoidance-v1')
+    env = gym.make('TurtleBot3ReactivePathPlanning-v0')
 
     # Loads parameters from the ROS param server. Parameters are stored in a 
     # .yaml file inside the /config directory. They are loaded at runtime by 
     # the launch file:
-    lr = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/learning_rate")
-    epsilon = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/epsilon")
-    gamma = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/gamma")
-    epsilon_discount = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/epsilon_discount")
-    min_epsilon = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/min_epsilon")
-    nepisodes = rospy.get_param("/turtlebot3_obstacle_avoidance_v1/nepisodes")
+    lr = rospy.get_param("/turtlebot3_reactive_path_planning_v0/learning_rate")
+    epsilon = rospy.get_param("/turtlebot3_reactive_path_planning_v0/epsilon")
+    gamma = rospy.get_param("/turtlebot3_reactive_path_planning_v0/gamma")
+    epsilon_discount = rospy.get_param("/turtlebot3_reactive_path_planning_v0/epsilon_discount")
+    min_epsilon = rospy.get_param("/turtlebot3_reactive_path_planning_v0/min_epsilon")
+    nepisodes = rospy.get_param("/turtlebot3_reactive_path_planning_v0/nepisodes")
 
     rbf_samplers = [("rbf1", RBFSampler(gamma=0.05, n_components=200)),
                     ("rbf2", RBFSampler(gamma=1.0, n_components=200)),
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     # Init Gym Monitor
     rospack = rospkg.RosPack()
     pkg_path = rospack.get_path('rl_turtlebot3')
-    outdir = pkg_path + '/training_results_qlearnRBF_obstacle_avoidance_v1'
+    outdir = pkg_path + '/training_results_qlearnRBF_reactive_path_planning'
     env = wrappers.Monitor(env, outdir, force=False, resume=True)
 
     # Instantiate QConvergence object:

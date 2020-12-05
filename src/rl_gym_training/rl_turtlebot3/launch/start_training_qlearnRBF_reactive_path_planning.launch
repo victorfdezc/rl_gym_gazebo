@@ -1,0 +1,6 @@
+<launch>
+    <!-- Load parameters -->
+    <rosparam command="load" file="$(find rl_turtlebot3)/config/turtlebot3_reactive_path_planning_qlearnRBF_params.yaml" />
+    <!-- Run the training script -->
+    <node pkg="rl_turtlebot3" name="turtlebot3_qlearnRBF" type="qlearnRBF_reactive_path_planning_training.py" output="screen"/>
+</launch>

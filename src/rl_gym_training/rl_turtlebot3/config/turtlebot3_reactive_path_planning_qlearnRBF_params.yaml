@@ -1,4 +1,4 @@
-turtlebot3_obstacle_avoidance_v1:
+turtlebot3_reactive_path_planning_v0:
     
     # Q-Learning parameters:
     learning_rate: 0.001
@@ -20,14 +20,22 @@ turtlebot3_obstacle_avoidance_v1:
     max_distance: 2.5 # Maximum distance in meters we can measure
     angle_ranges: [[-90,-54],[-54,-18],[-18,18],[18,54],[54,90]] # Laser scan angle intervals taken into account for each observation value
     min_range: 0.15 # Minimum meters below wich we consider we have crashed
+    max_distance_error: 2.5 # Maximum distance error from final position we can measure
 
     # Rewards:
-    forward_reward: 1 # Points given to go forwards
-    turn_reward: 0 # Points given to turn as action
-    end_episode_points: -200 # Points given when ending an episode
+    collision_reward: -200 # Reward when crashing
+    success_reward: 400 # Reward when arriving to final position
+    # Reward equation: R = Wo * (1/min_obs_distance) + Wfp * (distance_final_pos)
+    obstacle_weight: 0.0 # Weight to compute the reward depending on min distance to any obstacle (usually negative)
+    final_pos_weight: -0.5 # Weight to compute the reward depending on min distance to any obstacle (usually negative)
     
     # Initial states:
     init_linear_forward_speed: 0.0 # Initial linear speed in which we start each episode
     init_linear_turn_speed: 0.0 # Initial angular speed in shich we start each episode
     initial_poses: [[-1.0,-2.0,1.0,1.0],[0.0,-2.0,1.0,1.0],[1.0,-2.0,1.0,1.0],[-1.0,2.0,-1.0,1.0],[0.0,2.0,-1.0,1.0],[1.0,2.0,-1.0,1.0],
                     [-2.0,-1.0,0.0,-1.0],[-2.0,0.0,0.0,-1.0],[-2.0,1.0,0.0,-1.0],[2.0,-1.0,1.0,0.0],[2.0,0.0,1.0,0.0],[2.0,1.0,1.0,0.0]]
+
+    # Target Position:
+    area_radius: 1.8
+    area_center: [0,0]
+    success_distance: 0.3
