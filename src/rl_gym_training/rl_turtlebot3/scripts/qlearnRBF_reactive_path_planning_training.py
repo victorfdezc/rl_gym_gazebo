@@ -30,17 +30,17 @@ if __name__ == '__main__':
     min_epsilon = rospy.get_param("/turtlebot3_reactive_path_planning_v0/min_epsilon")
     nepisodes = rospy.get_param("/turtlebot3_reactive_path_planning_v0/nepisodes")
 
-    rbf_samplers = [("rbf1", RBFSampler(gamma=0.05, n_components=200)),
-                    ("rbf2", RBFSampler(gamma=1.0, n_components=200)),
-                    ("rbf3", RBFSampler(gamma=0.5, n_components=200)),
-                    ("rbf4", RBFSampler(gamma=0.1, n_components=200)),
-                    ("rbf5", RBFSampler(gamma=5.0, n_components=200)),
-                    ("rbf6", RBFSampler(gamma=2.0, n_components=200))]
+    rbf_samplers = [("rbf1", RBFSampler(gamma=0.05, n_components=1000)),
+                    ("rbf2", RBFSampler(gamma=0.1, n_components=1000)),
+                    ("rbf3", RBFSampler(gamma=0.5, n_components=1000)),
+                    ("rbf4", RBFSampler(gamma=1.0, n_components=1000)),
+                    ("rbf5", RBFSampler(gamma=2.0, n_components=1000)),
+                    ("rbf6", RBFSampler(gamma=5.0, n_components=1000))]
     observation_examples =  np.array([env.observation_space.sample() for x in range(20000)])
-
+    
     # Initialises Q-Learning
     qlearn = qlearnRBF.QLearnRBF(n_actions=env.action_space.n, epsilon=epsilon, lr=lr, gamma=gamma, 
-                reg_term=0.0001, rbf_samplers=rbf_samplers, observation_examples=observation_examples)
+                                rbf_samplers=rbf_samplers, observation_examples=observation_examples)
 
     # Init Gym Monitor
     rospack = rospkg.RosPack()

@@ -12,7 +12,7 @@ turtlebot3_reactive_path_planning_v0:
     hidden_layer_sizes: [500,300] # Hidden layers
     batch_size: 32
     min_experiences: 100 # Min samples experience buffer
-    max_experiences: 10000 # Max samples experience buffer
+    max_experiences: 7500 # Max samples experience buffer
     copy_period: 50 # Update rate target network
     load_model: 0 # Wether or not load a saved model, remember to decrease epsilon if True
 
